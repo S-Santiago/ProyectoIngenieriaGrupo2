@@ -9,13 +9,12 @@ import java.util.Scanner;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 
-
 enum Tipo {
 	FUEGO, AGUA, TIERRA, VIENTO, LUZ, OSCURIDAD
 }
 
 class dragon11 {
-	 private int identificador;
+	private int identificador;
 	private String nameString;
 	private Tipo tipo;
 	private int nivel;
@@ -79,8 +78,8 @@ class dragon11 {
 
 	@Override
 	public String toString() {
-		return "ID de dragon : " + identificador + " Nombre_de_Dragon : " + nameString + " Tipo : " + tipo + ", nivel : "
-				+ nivel;
+		return "ID de dragon : " + identificador + " Nombre_de_Dragon : " + nameString + " Tipo : " + tipo
+				+ ", nivel : " + nivel;
 	}
 
 	@Override
@@ -109,8 +108,8 @@ public class Dragon {
 
 	public Dragon() {
 		listasdeDragons.add(new dragon11(10, "hola", Tipo.FUEGO, 200, 12, 4));
-		listasdeDragons.add(new dragon11(2, "adios",Tipo.AGUA, 500, 18, 6));
-		listasdeDragons.add(new dragon11(5, "byebye",Tipo.FUEGO, 2000, 25, 30));
+		listasdeDragons.add(new dragon11(2, "adios", Tipo.AGUA, 500, 18, 6));
+		listasdeDragons.add(new dragon11(5, "byebye", Tipo.FUEGO, 2000, 25, 30));
 	}
 
 	public void anadir(int id, String name, Tipo tipo, int nivel, int atq, int def) {
@@ -130,98 +129,97 @@ public class Dragon {
 			System.out.println("Quiere aplicar un filtro de búsqueda (YES o NO): ");
 			String userInput = keyScanner.nextLine();
 			aplicarFiltro = userInput.equalsIgnoreCase("YES");
-			if(aplicarFiltro == true) {
+			if (aplicarFiltro == true) {
 				System.out.println("Dime por que criterio quieres filtrar（tipo nivel denfensa id）: ");
 				String userInput2 = keyScanner.nextLine();
-				if(userInput2.equalsIgnoreCase("Tipo")) {
-					
+				if (userInput2.equalsIgnoreCase("Tipo")) {
+
 					Tipo tipoString = null;
 
 					while (tipoString == null) {
 						System.out.println("Indroduce tipo (FUEGO, AGUA, TIERRA, VIENTO, LUZ, OSCURIDAD)");
 						try {
 							tipoString = Tipo.valueOf(keyScanner.nextLine().toUpperCase());
-							listasdeDragons.sort(Comparator.comparingInt(d->d.getIdentificador()));
+							listasdeDragons.sort(Comparator.comparingInt(d -> d.getIdentificador()));
 							for (dragon11 dragon : listasdeDragons) {
 								if (dragon.getTipo().equals(tipoString)) {
 									System.out.println(dragon.getNameString());
-									
+
 								}
 							}
 						} catch (Exception e) {
 							// TODO: handle exception
 						}
-						
+
 					}
 					return;
 				}
-				if(userInput2.equalsIgnoreCase("Nivel")) {
-					
+				if (userInput2.equalsIgnoreCase("Nivel")) {
+
 					System.out.println("Dime el nivel que quieras filtrar");
 					int nivelInput = keyScanner.nextInt();
-					listasdeDragons.sort(Comparator.comparingInt(d->d.getIdentificador()));
-					for(dragon11 dragon : listasdeDragons) {
+					listasdeDragons.sort(Comparator.comparingInt(d -> d.getIdentificador()));
+					for (dragon11 dragon : listasdeDragons) {
 						if (dragon.getNivel() == nivelInput) {
 							System.out.println(dragon.getNameString());
-							
+
 						}
 					}
 					return;
 				}
-				if(userInput2.equalsIgnoreCase("ataque")) {
-					
+				if (userInput2.equalsIgnoreCase("ataque")) {
+
 					System.out.println("Dime el ataque que quieras filtrar");
 					int nivelInput = keyScanner.nextInt();
-					listasdeDragons.sort(Comparator.comparingInt(d->d.getIdentificador()));
-					for(dragon11 dragon : listasdeDragons) {
+					listasdeDragons.sort(Comparator.comparingInt(d -> d.getIdentificador()));
+					for (dragon11 dragon : listasdeDragons) {
 						if (dragon.getATQ() == nivelInput) {
 							System.out.println(dragon.getNameString());
-							
+
 						}
 					}
 					return;
 				}
-				if(userInput2.equalsIgnoreCase("defensa")) {
-					
+				if (userInput2.equalsIgnoreCase("defensa")) {
+
 					System.out.println("Dime la defensa que quieras filtrar");
 					int nivelInput = keyScanner.nextInt();
-					listasdeDragons.sort(Comparator.comparingInt(d->d.getDEF()));
-					for(dragon11 dragon : listasdeDragons) {
+					listasdeDragons.sort(Comparator.comparingInt(d -> d.getDEF()));
+					for (dragon11 dragon : listasdeDragons) {
 						if (dragon.getDEF() == nivelInput) {
-							System.out.println(dragon.getNameString());		
+							System.out.println(dragon.getNameString());
 						}
 					}
 					return;
 				}
-			}else {
-				listasdeDragons.sort(Comparator.comparingInt(d ->d.getIdentificador()));
-				for(dragon11 drg:listasdeDragons) {
+			} else {
+				listasdeDragons.sort(Comparator.comparingInt(d -> d.getIdentificador()));
+				for (dragon11 drg : listasdeDragons) {
 					System.out.println(drg);
 				}
 				return;
 			}
-			
-			
+
 		}
 
 	}
 
 	public void update() {
-		boolean respuesta=false;
-		for(dragon11 d:listasdeDragons) {
+		boolean respuesta = false;
+		for (dragon11 d : listasdeDragons) {
 			System.out.println(d);
 		}
 		while (!respuesta) {
 			System.out.println("quieres modifica por id o por nombre");
-			String userintputs=keyScanner.nextLine();
-			
-			if(userintputs.equalsIgnoreCase("id")) {
+			String userintputs = keyScanner.nextLine();
+
+			if (userintputs.equalsIgnoreCase("id")) {
 				System.out.println("Ingrese el ID que desea modificar");
-				int userintput_id=keyScanner.nextInt();
-				for(dragon11 drg:listasdeDragons) {
-					if(drg.getIdentificador()==userintput_id) {
+				int userintput_id = keyScanner.nextInt();
+				for (dragon11 drg : listasdeDragons) {
+					if (drg.getIdentificador() == userintput_id) {
 						System.out.println("Encontrado,Introduce un nuevo nombre.");
-						String nameString=keyScanner.next();
+						String nameString = keyScanner.next();
 						drg.setNameString(nameString);
 						Tipo tipoString = null;
 						System.out.println("Indroduce nuevo tipo (FUEGO, AGUA, TIERRA, VIENTO, LUZ, OSCURIDAD)");
@@ -232,33 +230,33 @@ public class Dragon {
 							} catch (Exception e) {
 								// TODO: handle exception
 							}
-					}
-						int level=-1;
-						while (level==-1) {
+						}
+						int level = -1;
+						while (level == -1) {
 							System.out.println("indroduce el  nuevo nivel(debe ser positivo");
-							level=keyScanner.nextInt();	
+							level = keyScanner.nextInt();
 						}
 						drg.setNivel(level);
 						System.out.println("indroduce el nuevo  valor de ataque");
-						int ata=keyScanner.nextInt();
+						int ata = keyScanner.nextInt();
 						drg.setATQ(ata);
 						System.out.println("indroduce el  nuevo valor de defensa");
-						int def=keyScanner.nextInt();
+						int def = keyScanner.nextInt();
 						drg.setATQ(def);
 						System.out.println("modificando correctamente");
 						return;
+					}
 				}
-			}
 				System.out.println("no encuentro");
 				return;
-		}
-			if(userintputs.equalsIgnoreCase("nombre")) {
+			}
+			if (userintputs.equalsIgnoreCase("nombre")) {
 				System.out.println("Ingrese el nombre que desea modificar");
-				String userintputnameString=keyScanner.nextLine();
-				for(dragon11 drg:listasdeDragons) {
-					if(drg.getNameString().equalsIgnoreCase(userintputnameString)) {
+				String userintputnameString = keyScanner.nextLine();
+				for (dragon11 drg : listasdeDragons) {
+					if (drg.getNameString().equalsIgnoreCase(userintputnameString)) {
 						System.out.println("Encontrado,Introduce un nuevo id.");
-						int nuevoid=keyScanner.nextInt();
+						int nuevoid = keyScanner.nextInt();
 						drg.setIdentificador(nuevoid);
 						Tipo tipoString = null;
 						System.out.println("Indroduce nuevo tipo (FUEGO, AGUA, TIERRA, VIENTO, LUZ, OSCURIDAD)");
@@ -269,27 +267,27 @@ public class Dragon {
 							} catch (Exception e) {
 								// TODO: handle exception
 							}
-					}
-						int level=-1;
-						while (level==-1) {
+						}
+						int level = -1;
+						while (level == -1) {
 							System.out.println("indroduce el  nuevo nivel(debe ser positivo");
-							level=keyScanner.nextInt();	
+							level = keyScanner.nextInt();
 						}
 						drg.setNivel(level);
 						System.out.println("indroduce el nuevo  valor de ataque");
-						int ata=keyScanner.nextInt();
+						int ata = keyScanner.nextInt();
 						drg.setATQ(ata);
 						System.out.println("indroduce el  nuevo valor de defensa");
-						int def=keyScanner.nextInt();
+						int def = keyScanner.nextInt();
 						drg.setATQ(def);
 						System.out.println("modificando correctamente");
 						return;
+					}
 				}
-			}
 				System.out.println("no encuentro");
 				return;
-		}
-		
+			}
+
 		}
 	}
 
@@ -305,12 +303,12 @@ public class Dragon {
 
 	public void buscar() {
 		System.out.println("Queires buscar informacion de dragon desde el nombre o su identificación?");
-		String intputusuario=keyScanner.nextLine();
-		if(intputusuario.equalsIgnoreCase("nombre")) {
+		String intputusuario = keyScanner.nextLine();
+		if (intputusuario.equalsIgnoreCase("nombre")) {
 			System.out.println("De acuerdo. introduce el nombre del dragón que quieres buscar.");
-			String intuputString=keyScanner.nextLine();
-			for(dragon11 d:listasdeDragons) {
-				if(d.getNameString().equalsIgnoreCase(intuputString)) {
+			String intuputString = keyScanner.nextLine();
+			for (dragon11 d : listasdeDragons) {
+				if (d.getNameString().equalsIgnoreCase(intuputString)) {
 					System.out.println("encuentro");
 					System.out.println(d);
 					return;
@@ -319,11 +317,11 @@ public class Dragon {
 			System.out.println("no encuentro");
 			return;
 		}
-		if(intputusuario.equalsIgnoreCase("id")) {
+		if (intputusuario.equalsIgnoreCase("id")) {
 			System.out.println("De acuerdo. introduce el id del dragón que quieres buscar.");
-			int intput=keyScanner.nextInt();
-			for(dragon11 d:listasdeDragons) {
-				if(d.getIdentificador()==intput) {
+			int intput = keyScanner.nextInt();
+			for (dragon11 d : listasdeDragons) {
+				if (d.getIdentificador() == intput) {
 					System.out.println("encuentro");
 					System.out.println(d);
 					return;
@@ -334,22 +332,23 @@ public class Dragon {
 		}
 
 	}
+
 	public void exportarcsv() {
 		System.out.println("indroduce el nombre para archivo ");
-		String nombredearchivoString=keyScanner.nextLine();
-		String rutaString=nombredearchivoString+ ".csv";
-		try (PrintWriter escribir= new PrintWriter(new FileWriter(rutaString))){
+		String nombredearchivoString = keyScanner.nextLine();
+		String rutaString = nombredearchivoString + ".csv";
+		try (PrintWriter escribir = new PrintWriter(new FileWriter(rutaString))) {
 			System.out.println("ID,Nombre,TIpo,Nivel,ATaque,Defensa");
-			for(dragon11 d:listasdeDragons) {
-				escribir.println(d.getIdentificador()+" , "+d.getNameString()+" , "+d.getTipo()+" , "+d.getNivel()
-				+" , "+d.getATQ()+" , "+d.getDEF());
+			for (dragon11 d : listasdeDragons) {
+				escribir.println(d.getIdentificador() + " , " + d.getNameString() + " , " + d.getTipo() + " , "
+						+ d.getNivel() + " , " + d.getATQ() + " , " + d.getDEF());
 			}
 			System.out.println("archivo genrado corrcetamente");
-			
+
 		} catch (Exception e) {
-			System.out.println("no se puede genral archivo : "+e.getMessage());
+			System.out.println("no se puede genral archivo : " + e.getMessage());
 		}
-		
+
 	}
 
 	public static void main(String[] args) {
@@ -360,7 +359,7 @@ public class Dragon {
 			System.out.println();
 			System.out.println("---------------------listas de opciones-------------");
 			System.out.printf("1. Añadir dragón\n" + "2. Mostrar todos los dragones\n" + "3. Buscar dragón por ID\n"
-					+ "4. Modificar dragón\n" + "5. Eliminar dragón\n" + "6. general archivo csv\n"+ "0. Salir\n");
+					+ "4. Modificar dragón\n" + "5. Eliminar dragón\n" + "6. general archivo csv\n" + "0. Salir\n");
 			System.out.print("\nElegir tu opcion: ");
 			op = keyScanner.nextInt();
 			keyScanner.nextLine();
@@ -403,7 +402,7 @@ public class Dragon {
 				break;
 			}
 			case 3: {
-			
+
 				listas.buscar();
 				break;
 			}
@@ -428,5 +427,5 @@ public class Dragon {
 		} while (op != 0);
 		keyScanner.close();
 	}
-	
+
 }

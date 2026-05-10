@@ -1,86 +1,57 @@
 # Analizador de Rentabilidad de Líneas de Producto
 
 > [!NOTE]
-> Este documento detalla la responsabilidad exacta de cada archivo `.java` dentro de la arquitectura MVC y el sistema de persistencia exigido para el **Analizador de Rentabilidad de Líneas de Producto**.
+> **Descripción del Proyecto**
+> Aplicación de escritorio desarrollada para el sector de finanzas y distribución comercial. Está diseñada para una empresa distribuidora de bienes de consumo que exporta diariamente su cartera de pedidos a un fichero CSV y necesita importar esos datos para calcular KPIs de rentabilidad que hoy se calculan manualmente en Excel.
 
----
-
-## 📂 Estructura del Proyecto
-
-El código fuente está organizado directamente en la carpeta `src/`, separando la lógica en paquetes y ubicando los elementos visuales y de datos en la carpeta `resources/`:
-```text
-codigo/analizador/
-├── pom.xml
-├── README.md
-└── src/
-    ├── controller/
-    ├── model/
-    ├── persistence/
-    ├── resources/
-    │   ├── data/
-    │   │   ├── reglas.json
-    │   │   └── zonas.json
-    │   └── fxml/
-    │       ├── explorador_pedidos.fxml
-    │       ├── importacion_kpis.fxml
-    │       └── panel_rentabilidad.fxml
-    ├── view/
-    └── Main.java
-```
-
----
-
-## 🚀 Punto de Entrada
-
-> [!IMPORTANT]
-> Se requiere inicializar el sistema correctamente. `Main.java` debe arrancar el sistema de ventanas (JavaFX/Swing) y, de forma automática, invocar al repositorio para que recupere los datos persistentes (zonas y reglas) guardados previamente al iniciar el programa.
-
-*   **`Main.java`**: Clase principal que sirve como punto de entrada y arranque de la aplicación.
-
----
-
-## 📦 Paquete `model` (Entidades de Datos) [Daniel F.]
+## 🏗️ Arquitectura
 
 > [!TIP]
-> Las clases de este paquete deben ser modelos "anémicos": solo deben contener atributos, constructores y métodos *getter/setter*. La información importada desde el CSV se carga en memoria y no contiene lógica de negocio.
+> El proyecto aplica el patrón de diseño arquitectónico MVC y estructura su código en paquetes estrictos (`model/`, `view/`, `controller/`, `persistence/`).
 
-*   **`LineaPedido.java`**: Modela los datos transaccionales extraídos del CSV. Sus atributos son: `id_linea`, `id_pedido`, `referencia_producto`, `descripcion_producto`, `categoría`, `coste_unitario`, `precio_venta_unitario`, `unidades`, `fecha_pedido` (ISO 8601), `zona_comercial` y `estado`.
-*   **`ZonaComercial.java`**: Entidad persistente que define las áreas de venta. Contiene: `ID`, `nombre`, `país`, `responsable comercial` y `objetivo_facturacion_anual`.
-*   **`ReglaMargen.java`**: Entidad persistente que establece los límites financieros. Contiene: `ID`, `categoría de producto afectada`, `margen_minimo_porcentaje`, `activa` y `descripción`.
-*   **`EstadoPedido.java`**: Un `Enum` para tipificar los estados permitidos del pedido: `completado`, `cancelado` o `pendiente`.
-
----
-
-## 💾 Paquete `persistence` (Entrada y Salida) [Héctor L.]
-
-> [!WARNING]
-> Este paquete aísla el uso de librerías de archivos (Jackson, Apache POI) y es el único lugar donde la aplicación debe interactuar con el sistema operativo.
-
-> [!CAUTION]
-> La validación en la importación es crítica: se debe asegurar que costes y precios sean positivos, las unidades mayores a 0, la fecha sea parseable y el estado válido.
-
-*   **`CsvImporter.java`**: Lee el archivo CSV diario, valida los tipos de datos mencionados anteriormente, muestra al usuario las filas con error y carga las líneas correctas en memoria.
-*   **`JsonRepository.java`**: Implementa la persistencia JSON para guardar automáticamente y recuperar los datos del CRUD de `ZonaComercial` y `ReglaMargen`.
-*   **`ExcelExporter.java`**: Exporta un archivo XLSX con formato de tabla que contiene el ranking de categorías y el listado de líneas que están bajo el margen mínimo.
+* **`model/`**: Entidades de negocio y lógica matemática.
+* **`persistence/`**: Operaciones de entrada y salida (I/O).
+* **`controller/`**: Intermediario y orquestador de flujos.
+* **`view/`**: Componentes gráficos e interacciones del usuario.
 
 ---
 
-## ⚙️ Paquete `controller` (Lógica y Conexión) [Haojun Z.]
+## 👥 Equipo de Desarrollo y Responsabilidades
+
+* **Daniel F. (Model)**: Responsable de las entidades de datos y del motor matemático para desarrollar habilidades de agregación y cálculo financiero básico (margen, EBIT simplificado) sobre grandes colecciones Java.
+* **Héctor L. (Persistence)**: Encargado de la validación del CSV, el repositorio JSON para la persistencia de zonas y reglas, y la exportación a archivo (CSV/XLSX/PDF).
+* **Haojun Z. (Controller)**: Coordinador que distingue entre datos persistentes (la configuración de negocio) y datos transaccionales (los pedidos del CSV). Gestiona el filtrado y las reglas de negocio.
+* **Santiago F. (View)**: Desarrollador de la interfaz gráfica funcional con al menos 3 vistas o pantallas diferenciadas y de la gestión de errores mediante la interfaz.
+
+---
+
+## ✨ Características Principales
 
 > [!IMPORTANT]
-> Es el cerebro de la aplicación. Actúa como intermediario entre las vistas visuales y las entidades de datos, ejecutando las acciones matemáticas y los filtros que el usuario solicita.
+> **Importación Robusta**
+> Lectura de líneas de pedido desde archivos CSV con validación estricta: coste y precio positivos, unidades > 0, fecha parseable, estado válido. Muestra las filas con error de manera clara al usuario.
 
-*   **`CalculadoraFinanciera.java`**: Motor matemático. Calcula el margen bruto por línea usando la fórmula `(precio_venta - coste) x unidades` y genera agregaciones como rankings por facturación y margen total.
-*   **`ImportKpiController.java`**: Conecta la vista principal con el importador CSV y solicita los datos para mostrar la evolución mensual de facturación y margen para la zona o categoría seleccionada.
-*   **`ExploradorController.java`**: Aplica la lógica de filtrado sobre los pedidos cargados en memoria (por categoría, zona, estado y rango de fechas).
-*   **`RentabilidadController.java`**: Maneja el CRUD de zonas comerciales y reglas de margen. Procesa la detección de líneas por debajo del mínimo de su regla activa y calcula la comparativa de facturación real frente al objetivo por zona comercial.
+* **Persistencia Transparente**: Sistema CRUD completo para zonas comerciales y reglas de margen, guardado automáticamente y recuperado al iniciar la aplicación.
+* **Cálculo de Rentabilidad**: Evaluación del margen bruto por línea mediante la fórmula `(precio_venta - coste) x unidades` y detección de líneas con margen por debajo del mínimo de su regla activa.
+* **Exploración Visual**: Listado de líneas de pedido con filtro por categoría, zona, estado y rango de fechas. Búsqueda o filtrado de registros funciona correctamente.
+* **Exportación de Datos**: Exportar ranking de categorías y líneas bajo margen a XLSX con formato de tabla.
 
 ---
 
-## 🖥️ Paquete `view` (Componentes Gráficos) [Santiago F.]
+## 💻 Entorno y Tecnologías
 
-> [!NOTE]
-> Gestiona la interfaz gráfica y el flujo de las al menos 3 pantallas diferenciadas de la aplicación sin procesar lógica de cálculo.
+* **Lenguaje**: Java.
+* **Entorno**: JDK configurado, IDE (IntelliJ/Eclipse).
+* **Gestor de Proyectos**: Maven/Gradle.
+* **Librerías Clave**: Dependencias identificadas y descargadas como Jackson, Apache POI y JavaFX.
 
-*   **`VistaManager.java`**: Controla la navegación fluida entre la vista de importación y KPIs globales, el explorador de pedidos, y el panel de rentabilidad.
-*   **`ConsolaErroresDialog.java`**: Componente visual para mostrar mensajes de error claros al usuario. Gestiona excepciones comunes como ficheros no encontrados, costes negativos o fechas malformadas, impidiendo que existan cierres inesperados del programa.
+---
+
+## ✅ Estado de Desarrollo (Definition of Done)
+
+> [!CAUTION]
+> **Criterios de Aceptación Obligatorios**
+> * CRUD completo funciona sin errores: crear, consultar, modificar y eliminar.
+> * Proyecto probado manualmente con casos de uso reales por el equipo.
+> * Todas las validaciones implementadas con mensajes de error claros al usuario.
+> * Errores comunes gestionados sin cierres inesperados del programa.

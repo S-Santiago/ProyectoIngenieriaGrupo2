@@ -1,30 +1,23 @@
 package persistence;
 
-import org.apache.commons.io.FileUtils;
+import jackson.databind;
+import jackson.datatype.jsr310;
 import java.io.File;
 import java.io.IOException;
 
 public class JsonRepository {
-    private String filePath;
+    private ObjectMapper objectMapper;
 
-    public JsonRepository(String filePath) {
-        this.filePath = filePath;
+    public JsonRepository() {
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
     }
 
-    public void saveData(String jsonData) {
-        try {
-            FileUtils.writeStringToFile(new File(filePath), jsonData, "UTF-8");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public <T> void saveToJson(String filePath, T data) throws IOException {
+        objectMapper.writerWithDefaultPrettyPrinter().writeValue(new File(filePath), data);
     }
 
-    public String loadData() {
-        try {
-            return FileUtils.readFileToString(new File(filePath), "UTF-8");
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public <T> T loadFromJson(String filePath, Class<T> valueType) throws IOException {
+        return objectMapper.readValue(new File(filePath), valueType);
     }
 }

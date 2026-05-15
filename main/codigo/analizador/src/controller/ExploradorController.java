@@ -73,7 +73,7 @@ public class ExploradorController {
           valido=false;
         }
         //6.zona comercial
-        if(p.get(i).getZonaComercial()==null||p.get(i).getZonaComercial().getObjetivoFacturacionAnual()<0||p.get(i).getZonaComercial().getNombre()==null||p.get(i).getZonaComercial().getPais()==null||p.get(i).getZonaComercial().getResponsableComercial()==null){
+        if(p.get(i).getZonaComercial()<0){
           System.out.printf("El pedido con id %d no tiene zona comercial válida.\n", p.get(i).getIdPedido());
           valido=false;
         }
@@ -144,35 +144,45 @@ public void limpiarPedidos() {
       }
         break;
         case "zonacomercial":
-        System.out.println("Filtrando por zona comercial:");
-        //un set para almacenar zonas comerciales únicas
-        Set<String> zonasComercialesUnicas = new HashSet<>();
-        for(LineaPedido pedido:getPedidos()){
-          zonasComercialesUnicas.add(pedido.getZonaComercial().getNombre());
+         System.out.println("Filtrando por zona comercial:");
+         //coger id de zona no repetido
+        Set<Integer> zonasComercialesUnicas = new HashSet<>();
+    for(LineaPedido pedido:getPedidos()){
+        zonasComercialesUnicas.add(pedido.getZonaComercial());
+    }
+    
+    // 2. demustrar
+    for(int idZona : zonasComercialesUnicas){
+        System.out.println("- ID Zona: " + idZona);
+    }
+    
+    System.out.println("Elegir el ID de la zona comercial para filtrar:");
+    String zonacomercialSeleccionada = keyScanner.nextLine();
+    int zona=-1;
+    try{
+           zona=Integer.parseInt(zonacomercialSeleccionada);
+        if(zona<0){
+          throw  new IllegalArgumentException("Debería ser un número positivo");
         }
-       //mostrar zonas comerciales únicas
-            for(String zona:zonasComercialesUnicas){
-              System.out.println("- "+zona);
-              }
-          System.out.println("elegir la zona comercial para filtrar:");
-          String ZonacomercialSeleccionada = keyScanner.nextLine();
-          boolean zonaEncontrada=false;
-          for(String zona:zonasComercialesUnicas){
-            if(zona.equalsIgnoreCase(ZonacomercialSeleccionada)){
-              zonaEncontrada=true;
-              break;
-            }
-          }
-          if(zonaEncontrada){
-            for(LineaPedido pedido:getPedidos()){
-              if(pedido.getZonaComercial().getNombre().equalsIgnoreCase(ZonacomercialSeleccionada)){
+    }catch(NumberFormatException exception){
+      System.out.println("  No es un número entero.");
+      break;
+    }catch(IllegalArgumentException exception){
+      System.out.println("Error"+exception.getMessage());
+      break;
+    }
+    
+    if(zonasComercialesUnicas.contains(zona)){
+        for(LineaPedido pedido:getPedidos()){
+            if(pedido.getZonaComercial() == zona){
                 pedidosFiltrados.add(pedido);
-              }
             }
-          }else{
-            System.out.println("La zona comercial seleccionada no se encuentra entre las zonas comerciales disponibles.");
-          }
-            break;
+        }
+        System.out.println("Filtrado completado.");
+    } else {
+        System.out.println("La zona comercial seleccionada no se encuentra entre las disponibles.");
+    }
+    break;
         case "estadopedido":
         System.out.println("Filtrando por estado de pedido:");
         //un set para almacenar estados de pedido únicos

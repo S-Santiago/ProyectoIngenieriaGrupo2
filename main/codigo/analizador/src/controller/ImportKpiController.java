@@ -11,7 +11,7 @@ public class ImportKpiController {
        private  ExploradorController exploradorController= ExploradorController.getInstance();
        private  CsvImporter csvImporter=new  CsvImporter();
        public void importar(String s){
-        List<LineaPedido>list=csvImporter.importCsv(s);
+        List<LineaPedido>list=csvImporter.importCSVLineaPedidos(s);
         exploradorController.setPedidos(list);
        }    
         public Map<String,Double> calcularKpimensual_facutracion(String opcion){

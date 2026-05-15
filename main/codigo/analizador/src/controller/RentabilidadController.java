@@ -74,7 +74,7 @@ public class RentabilidadController {
         if (exito) {
             System.out.println(" Zona comercial con ID " + id + " eliminada correctamente.");
         } else {
-            System.out.println(" Error: No se encontró la zona con ID " + id + ".");
+            System.out.println(" Error: No encontró la zona con ID " + id + ".");
         }
     }
 
@@ -92,7 +92,7 @@ public class RentabilidadController {
         ZonaComercial zonaExistente = repoZonas.findById(id);
 
         if (zonaExistente == null) {
-            System.out.println("Error: No se encontró la zona con ID " + id);
+            System.out.println("Error: No  encontró la zona con ID " + id);
             return;
         }
         zonaExistente.setNombre(nuevoNombre);
@@ -108,7 +108,7 @@ public class RentabilidadController {
         ReglaMargen reglaExistente = repoReglas.findById(id);
 
         if (reglaExistente == null) {
-            System.out.println(" Error: No se encontró la regla con ID " + id);
+            System.out.println(" Error: No  encontró la regla con ID " + id);
             return;
         }
         reglaExistente.setMargenMinimoPortcentaje(nuevoMargen);

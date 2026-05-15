@@ -246,8 +246,8 @@ public void limpiarPedidos() {
     break;
     case "NA":
       break;
-        default:
-        System.out.println("Opción de filtro no válida. Por favor, elige una opción válida.");
+      default:
+        System.out.println("Opción de filtro no válida");
     }
     return pedidosFiltrados;
 }

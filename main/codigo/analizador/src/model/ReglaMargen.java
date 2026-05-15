@@ -11,8 +11,7 @@ public class ReglaMargen {
     public ReglaMargen() {
     }
 
-    public ReglaMargen(int id, String categoriaProductoAfectada, double margenMinimoPortcentaje, boolean activa,
-            String descripcion) {
+    public ReglaMargen(int id, String categoriaProductoAfectada, double margenMinimoPortcentaje, boolean activa, String descripcion) {
         this.id = id;
         this.categoriaProductoAfectada = categoriaProductoAfectada;
         this.margenMinimoPortcentaje = margenMinimoPortcentaje;

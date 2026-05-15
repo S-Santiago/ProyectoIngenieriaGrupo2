@@ -11,15 +11,12 @@ public class LineaPedido {
     private double precioVentaUnitario;
     private int unidades;
     private String fechaPedido;
-    private ZonaComercial zonaComercial;
+    private int zonaComercial;
     private EstadoPedido estado;
-
-    public LineaPedido() {
-    }
 
     public LineaPedido(int idLinea, int idPedido, String referenciaProduto, String descripcionProducto,
             String categoria, double costeUnitario, double precioVentaUnitario,
-            int unidades, String fechaPedido, ZonaComercial zonaComercial, EstadoPedido estado) {
+            int unidades, String fechaPedido, int zonaComercial, EstadoPedido estado) {
         this.idLinea = idLinea;
         this.idPedido = idPedido;
         this.referenciaProduto = referenciaProduto;
@@ -105,11 +102,11 @@ public class LineaPedido {
         this.fechaPedido = fechaPedido;
     }
 
-    public ZonaComercial getZonaComercial() {
+    public int getZonaComercial() {
         return zonaComercial;
     }
 
-    public void setZonaComercial(ZonaComercial zonaComercial) {
+    public void setZonaComercial(int zonaComercial) {
         this.zonaComercial = zonaComercial;
     }
 

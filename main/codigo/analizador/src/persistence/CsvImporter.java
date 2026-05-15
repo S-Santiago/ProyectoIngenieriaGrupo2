@@ -5,9 +5,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import model.LineaPedido;
-import model.ZonaComercial;
-import model.ReglaMargen;
 import model.EstadoPedido;
 
 public class CsvImporter {
@@ -20,7 +19,8 @@ public class CsvImporter {
             while ((line = br.readLine()) != null) {
                 contadorLineas++;
                 if (line.trim().isEmpty()) continue; // Salta las líneas vacías
-                else if (line.length() == 10) { 
+                else if (line.startsWith("idLinea") || line.startsWith("idPedido") || line.startsWith("unidades") || line.startsWith("costeUnitario") || line.startsWith("precioVentaUnitario") || line.startsWith("fechaPedido") || line.startsWith("categoria") || line.startsWith("zonaComercial") || line.startsWith("estado") || line.startsWith("referenciaProducto")) continue; // Salta la cabecera{ 
+                else {
                     String[] values = line.split(",");
                     if (values.length != 11) {
                         System.out.println("Línea con formato incorrecto: " + line);
@@ -105,117 +105,17 @@ public class CsvImporter {
                     }
                 }
             }
-        } catch (IOException e) {
+        } 
+        catch (IOException e) {
             e.printStackTrace();
+        }
+        catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        finally {
+            System.out.println("Número total de líneas procesadas: " + contadorLineas);
+            System.out.println("Número total de líneas importadas: " + lineasPedido.size());
         }
         return lineasPedido;
-    }
-    
-    public List<ZonaComercial> importCSVZonasComerciales(String filePath) {
-        List<ZonaComercial> zonasComerciales = new ArrayList<>();
-        int contadorLineas = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                contadorLineas++;
-                if (line.trim().isEmpty()) continue; // Salta las líneas vacías
-                String[] values = line.split(",");
-                if (values.length != 5) {
-                    System.out.println("Línea con formato incorrecto: " + line);
-                    System.out.println("Fila: " + contadorLineas);
-                    break; // Saltar las lineas con formato incorrecto
-                }
-                else if (Integer.parseInt(values[0]) <= 0) {
-                    System.out.println("ID de zona comercial no válido (debe ser positivo): " + values[0]);
-                    System.out.println("Fila: " + contadorLineas);
-                    break; // Saltar las lineas con ID de zona comercial no válido
-                }
-                else if (Double.parseDouble(values[4]) < 0) {
-                    System.out.println("Descuento máximo no válido (no puede ser negativo): " + values[4]);
-                    System.out.println("Fila: " + contadorLineas);
-                    break; // Saltar las lineas con descuento máximo negativo
-                }
-                else if (values[1].trim().isEmpty()) {
-                    System.out.println("Nombre de zona comercial no válido (no puede estar vacío): " + values[1]);
-                    System.out.println("Fila: " + contadorLineas);
-                    break; // Saltar las lineas con nombre de zona comercial vacío
-                }
-                else if (values[2].trim().isEmpty()) {
-                    System.out.println("Región de zona comercial no válida (no puede estar vacía): " + values[2]);
-                    System.out.println("Fila: " + contadorLineas);
-                    break; // Saltar las lineas con región de zona comercial vacía
-                }
-                else if (values[3].trim().isEmpty()) {
-                    System.out.println("País de zona comercial no válido (no puede estar vacío): " + values[3]);
-                    System.out.println("Fila: " + contadorLineas);
-                    break; // Saltar las lineas con país de zona comercial vacío
-                }
-                else {
-                    ZonaComercial zona = new ZonaComercial(
-                        Integer.parseInt(values[0].trim()), 
-                        values[1].trim(), 
-                        values[2].trim(),
-                        values[3].trim(), 
-                        Double.parseDouble(values[4].trim())
-                    );
-                    zonasComerciales.add(zona);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return zonasComerciales;
-    }
-
-
-    public List<ReglaMargen> importCSVReglasMargen(String filePath) {
-        List<ReglaMargen> reglasMargen = new ArrayList<>();
-        int contadorLineas = 0;
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                contadorLineas++;
-                if (line.trim().isEmpty()) continue; // Salta las líneas vacías
-                String[] values = line.split(",");
-                if (values.length != 5) {
-                    System.out.println("Línea con formato incorrecto: " + line);
-                    System.out.println("Fila: " + contadorLineas);
-                    break; // Salta las líneas mal formateadas
-                }
-                else if (Integer.parseInt(values[0]) <= 0) {
-                    System.out.println("ID de regla de margen no válido (debe ser positivo): " + values[0]);
-                    System.out.println("Fila: " + contadorLineas);
-                    break; // Salta las líneas con ID de regla de margen no válido
-                }
-                else if (Double.parseDouble(values[2]) < 0) {
-                    System.out.println("Margen mínimo no válido (no puede ser negativo): " + values[2]);
-                    System.out.println("Fila: " + contadorLineas);
-                    break; // Salta las líneas con margen mínimo negativo
-                }
-                else if (values[1].trim().isEmpty()) {
-                    System.out.println("Categoría de producto afectada no válida (no puede estar vacía): " + values[1]);
-                    System.out.println("Fila: " + contadorLineas);
-                    break; // Salta las líneas con categoría de producto afectada vacía
-                }
-                else if (values[4].trim().isEmpty()) {
-                    System.out.println("Descripción de regla de margen no válida (no puede estar vacía): " + values[4]);
-                    System.out.println("Fila: " + contadorLineas);
-                    break; // Salta las líneas con descripción de regla de margen vacía
-                }
-                else {
-                    ReglaMargen regla = new ReglaMargen(
-                        Integer.parseInt(values[0].trim()), 
-                        values[1].trim(), 
-                        Double.parseDouble(values[2].trim()),
-                        Boolean.parseBoolean(values[3].trim()), 
-                        values[4].trim()
-                    );
-                    reglasMargen.add(regla);
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return reglasMargen;
     }
 }

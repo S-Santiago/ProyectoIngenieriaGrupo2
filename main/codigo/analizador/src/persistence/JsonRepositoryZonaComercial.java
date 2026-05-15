@@ -1,11 +1,12 @@
 package persistence;
 
-import jackson.databind;
-import jackson.datatype.jsr310;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import model.ZonaComercial;
 
@@ -14,7 +15,7 @@ public class JsonRepositoryZonaComercial {
     private final ObjectMapper mapper = new ObjectMapper();
     private List<ZonaComercial> zonasComerciales;
 
-    public JsonZonaComercialRepository() {
+    public JsonRepositoryZonaComercial() {
         this.zonasComerciales = cargarDesdeFichero();
     }
 

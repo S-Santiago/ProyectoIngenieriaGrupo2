@@ -2,7 +2,7 @@ package model;
 
 public class ZonaComercial {
 
-    private int id;
+    private Integer id;
     private String nombre;
     private String pais;
     private String responsableComercial;
@@ -11,7 +11,7 @@ public class ZonaComercial {
     public ZonaComercial() {
     }
 
-    public ZonaComercial(int id, String nombre, String pais, String responsableComercial,
+    public ZonaComercial(Integer id, String nombre, String pais, String responsableComercial,
             double objetivoFacturacionAnual) {
         this.id = id;
         this.nombre = nombre;
@@ -20,11 +20,11 @@ public class ZonaComercial {
         this.objetivoFacturacionAnual = objetivoFacturacionAnual;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

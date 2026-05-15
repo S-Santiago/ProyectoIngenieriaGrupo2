@@ -2,21 +2,21 @@ package model;
 
 public class LineaPedido {
 
-    private int idLinea;
-    private int idPedido;
+    private Integer idLinea;
+    private Integer idPedido;
     private String referenciaProduto;
     private String descripcionProducto;
     private String categoria;
     private double costeUnitario;
     private double precioVentaUnitario;
-    private int unidades;
+    private Integer unidades;
     private String fechaPedido;
-    private int zonaComercial;
+    private Integer zonaComercial;
     private EstadoPedido estado;
 
-    public LineaPedido(int idLinea, int idPedido, String referenciaProduto, String descripcionProducto,
+    public LineaPedido(Integer idLinea, Integer idPedido, String referenciaProduto, String descripcionProducto,
             String categoria, double costeUnitario, double precioVentaUnitario,
-            int unidades, String fechaPedido, int zonaComercial, EstadoPedido estado) {
+            Integer unidades, String fechaPedido, Integer zonaComercial, EstadoPedido estado) {
         this.idLinea = idLinea;
         this.idPedido = idPedido;
         this.referenciaProduto = referenciaProduto;
@@ -30,19 +30,19 @@ public class LineaPedido {
         this.estado = estado;
     }
 
-    public int getIdLinea() {
+    public Integer getIdLinea() {
         return idLinea;
     }
 
-    public void setIdLinea(int idLinea) {
+    public void setIdLinea(Integer idLinea) {
         this.idLinea = idLinea;
     }
 
-    public int getIdPedido() {
+    public Integer getIdPedido() {
         return idPedido;
     }
 
-    public void setIdPedido(int idPedido) {
+    public void setIdPedido(Integer idPedido) {
         this.idPedido = idPedido;
     }
 
@@ -86,11 +86,11 @@ public class LineaPedido {
         this.precioVentaUnitario = precioVentaUnitario;
     }
 
-    public int getUnidades() {
+    public Integer getUnidades() {
         return unidades;
     }
 
-    public void setUnidades(int unidades) {
+    public void setUnidades(Integer unidades) {
         this.unidades = unidades;
     }
 
@@ -102,11 +102,11 @@ public class LineaPedido {
         this.fechaPedido = fechaPedido;
     }
 
-    public int getZonaComercial() {
+    public Integer getZonaComercial() {
         return zonaComercial;
     }
 
-    public void setZonaComercial(int zonaComercial) {
+    public void setZonaComercial(Integer zonaComercial) {
         this.zonaComercial = zonaComercial;
     }
 

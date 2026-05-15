@@ -10,62 +10,115 @@ import model.ReglaMargen;
 import model.ZonaComercial;
 import persistence.CsvImporter;
 import persistence.JsonRepository;
+import persistence.JsonRepositoryReglaMargen;
+import persistence.JsonRepositoryZonaComercial;
 
 public class RentabilidadController {
-    List<ZonaComercial>listZonaComercials;
-    List<ReglaMargen>listadReglaMargens;
-       private final String PATH_ZONAS = "data/zonas.json";
-        private final String PATH_REGLAS = "data/reglas.json";
-    private JsonRepository jsonRepo = new JsonRepository();
-    private  CsvImporter csvImporter=new CsvImporter();
+    private JsonRepositoryZonaComercial repoZonas = new JsonRepositoryZonaComercial();
+    private JsonRepositoryReglaMargen repoReglas = new JsonRepositoryReglaMargen();
+    private CsvImporter csvImporter = new CsvImporter();
 
     public void cargarDatos() {
-        try {
-            File file = new File(PATH_ZONAS);
-            if (file.exists()) {
-               ZonaComercial[]arrylisaComercials=jsonRepo.loadFromJson(PATH_ZONAS, ZonaComercial[].class);
-                this.listZonaComercials=new ArrayList<>(Arrays.asList(arrylisaComercials));
-            } else {
-                // si no hay json,cargar csv
-                this.listZonaComercials=csvImporter.importCSVZonasComerciales("data/zonas.csv");
+        //carga zona
+        List<ZonaComercial>zonas=repoZonas.findAll();
+        if(zonas.isEmpty()){
+            System.out.println(" JSON de Zonas vacío  Cargando desde CSV...");
+            //si no exite cargamos desde csv
+            List<ZonaComercial>zonaComercialsCSv=csvImporter.importCSVZonasComerciales("data/zonas.csv");
+            for(ZonaComercial z:zonaComercialsCSv){
+                //save a repozonas
+                repoZonas.save(z);
             }
-            File fileRegarademargen=new File(PATH_REGLAS);
-            if (fileRegarademargen.exists()) {
-               ReglaMargen[]arryreglademargens=jsonRepo.loadFromJson(PATH_REGLAS, ReglaMargen[].class);
-                this.listadReglaMargens=new ArrayList<>(Arrays.asList(arryreglademargens));
-            } else {
-                // si no hay json,cargar csv
-                this.listadReglaMargens=csvImporter.importCSVReglasMargen("data/regla.csv");
+        }else {
+            System.out.println("Zonas cargadas desde JSON correctamente.");
+        }
+    List<ReglaMargen> reglas = repoReglas.findAll();
+        
+        if (reglas.isEmpty()) {
+            System.out.println("JSON de Reglas vacío. Cargando desde CSV...");
+            List<ReglaMargen> reglasCSV = csvImporter.importCSVReglasMargen("data/reglas.csv");
+            for (ReglaMargen r : reglasCSV) {
+                repoReglas.save(r);
             }
-        } catch (IOException e) {
-            System.out.println("....");
+        } else {
+            System.out.println("Reglas cargadas desde JSON correctamente.");
         }
     }
-    //1.Crear zona, Crear regla de margen
-    public void addzona(Object obj){
-        if(!(obj instanceof ZonaComercial)){
-            System.out.println("el objeto no es un clase de zona zonacomercial");
+    //C
+ public void addzona(Object obj) {
+        if (!(obj instanceof ZonaComercial)) {
+            System.out.println("Error: El objeto no es de la clase ZonaComercial");
             return;
         }
-        ZonaComercial nuevZonaComercial=(ZonaComercial)obj;
-        if(this.listZonaComercials.contains(nuevZonaComercial)){
-            System.out.println("");
-        }else try{
-            listZonaComercials.add(nuevZonaComercial);
-            jsonRepo.saveToJson(PATH_ZONAS,this.listZonaComercials);
-        }catch(IOException e){
-            System.out.println("No se puede guardar"+e.getMessage());
+        ZonaComercial nuevaZona = (ZonaComercial) obj;
+        repoZonas.save(nuevaZona);
+        System.out.println("Zona guardada correctamente.");
+    }
+
+    public void addreglademargen(ReglaMargen nuevaRegla) {
+        repoReglas.save(nuevaRegla);
+        System.out.println("Regla de margen guardada correctamente.");
+    }
+    //R
+    public List<ZonaComercial> ReadTodaszona() {
+        return repoZonas.findAll();
+    }
+    public  List<ReglaMargen>ReadTOdosmargen(){
+        return  repoReglas.findAll();
+    }
+    // eleminar
+
+    public void deleteZona(String id) {
+        boolean exito = repoZonas.delete(id);
+        
+        if (exito) {
+            System.out.println(" Zona comercial con ID " + id + " eliminada correctamente.");
+        } else {
+            System.out.println(" Error: No se encontró la zona con ID " + id + ".");
         }
     }
-    public void addreglademargen(ReglaMargen nuevaregReglaMargen){
-        this.listadReglaMargens.add(nuevaregReglaMargen);
-        try{
-            jsonRepo.saveToJson(PATH_REGLAS,this.listadReglaMargens);
-        }catch(IOException e){
-            System.out.println("No se puede guardar"+e.getMessage());
+
+    public void deleteReglaMargen(String id) {
+        boolean exito = repoReglas.delete(id);
+        
+        if (exito) {
+            System.out.println("Regla de margen con ID " + id + " eliminada correctamente.");
+        } else {
+            System.out.println("Error: No se encontró la regla con ID " + id + ".");
         }
     }
-    public List<ZonaComercial> ReadTodaszona(){
-        return listZonaComercials;
+    //U
+    public void updateZona(String id, String nuevoNombre, String nuevoPais, String nuevoResponsable, double nuevoObjetivo) {
+        ZonaComercial zonaExistente = repoZonas.findById(id);
+
+        if (zonaExistente == null) {
+            System.out.println("Error: No se encontró la zona con ID " + id);
+            return;
+        }
+        zonaExistente.setNombre(nuevoNombre);
+        zonaExistente.setPais(nuevoPais);
+        zonaExistente.setObjetivoFacturacionAnual(nuevoObjetivo);
+        zonaExistente.setResponsableComercial(nuevoResponsable);
+
+        repoZonas.save(zonaExistente);
+        System.out.println("Zona actualizada correctamente.");
     }
+
+    public void updateReglaMargen(String id, String nuevaCategoria, double nuevoMargen, boolean nuevaActiva, String nuevaDescripcion) {
+        ReglaMargen reglaExistente = repoReglas.findById(id);
+
+        if (reglaExistente == null) {
+            System.out.println(" Error: No se encontró la regla con ID " + id);
+            return;
+        }
+        reglaExistente.setMargenMinimoPortcentaje(nuevoMargen);
+        reglaExistente.setCategoriaProductoAfectada(nuevaCategoria);
+        reglaExistente.setActiva(nuevaActiva);
+        reglaExistente.setDescripcion(nuevaDescripcion);
+
+        repoReglas.save(reglaExistente);
+        System.out.println("Regla de margen actualizada correctamente.");
+    }
+
 }
+

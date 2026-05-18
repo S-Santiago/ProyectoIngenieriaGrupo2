@@ -1,5 +1,6 @@
 package controller;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -8,44 +9,50 @@ import model.LineaPedido;
 import persistence.CsvImporter;
 
 public class ImportKpiController {
-       private  ExploradorController exploradorController= ExploradorController.getInstance();
-       private  CsvImporter csvImporter = new  CsvImporter();
-       public void importar(String s){
-        List<LineaPedido>list=csvImporter.importCSVLineaPedidos(s);
+    private final ExploradorController exploradorController = ExploradorController.getInstance();
+    private final CsvImporter csvImporter = new CsvImporter();
+
+    public void importar(String s){
+     List<LineaPedido>list=csvImporter.importCSVLineaPedidos(s);
         exploradorController.setPedidos(list);
        }    
-        public Map<String,Double> calcularKpimensual_facutracion(String opcion){
-            List<LineaPedido>listfiltrado=exploradorController.filtrarPedidosPorCategoria(opcion);
-            Map<String,Double>kplmensual=new TreeMap<>();
-            for(LineaPedido p:listfiltrado){
-                java.time.LocalDate Fechadepedido=java.time.LocalDate.parse(p.getFechaPedido(),exploradorController.getdate());
-                int mes=Fechadepedido.getMonthValue();
-                String meskey=String.format("%02d",mes);
-                double facturacion=p.getPrecioVentaUnitario()*p.getUnidades();
-                if(kplmensual.containsKey(meskey)){
-                    double nuevoprecio=kplmensual.get(meskey)+facturacion;
-                    kplmensual.put(meskey, nuevoprecio);
+        public Map<String,BigDecimal> calcularKPIMensualFacturacion(String opcion){
+            List<LineaPedido> lineaPedidosFiltrado=exploradorController.filtrarPedidosPorCategoria(opcion);
+            Map<String,BigDecimal> kpiMensual=new TreeMap<>();
+            for(LineaPedido p:lineaPedidosFiltrado){
+                java.time.LocalDate fechaDePedido=java.time.LocalDate.parse(p.getFechaPedido(),exploradorController.getDateFormatter());
+                int mes=fechaDePedido.getMonthValue();
+                String mesKey=String.format("%02d",mes);
+                BigDecimal facturacion=valorMonetario(p.getPrecioVentaUnitario(), p.getUnidades());
+                if(kpiMensual.containsKey(mesKey)){
+                    kpiMensual.put(mesKey, kpiMensual.get(mesKey).add(facturacion));
                 }else{
-                    kplmensual.put(meskey, facturacion);
+                    kpiMensual.put(mesKey, facturacion);
                 }
             }
-            return kplmensual;
+            return kpiMensual;
         }
-        public Map<String,Double> calcularKpimensual_margen(String opcion){
-            List<LineaPedido>lineaPeddiPedidosfiltrado=exploradorController.filtrarPedidosPorCategoria(opcion);
-            Map<String,Double>kplmensual=new TreeMap<>();
-            for(LineaPedido p:lineaPeddiPedidosfiltrado){
-                java.time.LocalDate Fechadepedido=java.time.LocalDate.parse(p.getFechaPedido(),exploradorController.getdate());
-                int mes=Fechadepedido.getMonthValue();
-                String meskey=String.format("%02d",mes);
-                double margen =(p.getPrecioVentaUnitario() - p.getCosteUnitario()) * p.getUnidades();
-                if(kplmensual.containsKey(meskey)){
-                    double nuevoprecio=kplmensual.get(meskey)+margen;
-                    kplmensual.put(meskey, nuevoprecio);
+        public Map<String,BigDecimal> calcularKPIMensualMargen(String opcion){
+            List<LineaPedido> lineaPedidosFiltrado=exploradorController.filtrarPedidosPorCategoria(opcion);
+            Map<String,BigDecimal> kpiMensual=new TreeMap<>();
+            for(LineaPedido p:lineaPedidosFiltrado){
+                java.time.LocalDate fechaDePedido=java.time.LocalDate.parse(p.getFechaPedido(),exploradorController.getDateFormatter());
+                int mes=fechaDePedido.getMonthValue();
+                String mesKey=String.format("%02d",mes);
+                BigDecimal margen=valorMonetario(p.getPrecioVentaUnitario(), p.getUnidades())
+                        .subtract(valorMonetario(p.getCosteUnitario(), p.getUnidades()));
+                if(kpiMensual.containsKey(mesKey)){
+                    kpiMensual.put(mesKey, kpiMensual.get(mesKey).add(margen));
                 }else{
-                    kplmensual.put(meskey, margen);
+                    kpiMensual.put(mesKey, margen);
                 }
             }
-            return kplmensual;
+            return kpiMensual;
+        }
+
+        private BigDecimal valorMonetario(BigDecimal valorUnitario, Integer unidades) {
+            BigDecimal valor = valorUnitario == null ? BigDecimal.ZERO : valorUnitario;
+            BigDecimal cantidad = unidades == null ? BigDecimal.ZERO : BigDecimal.valueOf(unidades.longValue());
+            return valor.multiply(cantidad);
         }
 }

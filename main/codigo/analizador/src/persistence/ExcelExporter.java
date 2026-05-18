@@ -1,19 +1,25 @@
 package persistence;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
 import model.LineaPedido;
 import model.ReglaMargen;
 import model.ZonaComercial;
-import org.apache.poi.xssf.usermodel.*;
-
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.List;
 
 public class ExcelExporter {
 
     public void exportLineasPedido(String filePath, List<LineaPedido> lineasPedido) {
-            try (XSSFWorkbook workbook = new XSSFWorkbook()) {
-                XSSFSheet sheet = workbook.createSheet("LineasPedido");
+        List<LineaPedido> lineasSeguras = lineasPedido == null ? Collections.emptyList() : lineasPedido;
+        try (XSSFWorkbook workbook = new XSSFWorkbook(); FileOutputStream outputStream = new FileOutputStream(filePath)) {
+            XSSFSheet sheet = workbook.createSheet("LineasPedido");
 
             XSSFRow headerRow = sheet.createRow(0);
             String[] headers = {"ID", "Cantidad", "Producto", "Categoria", "PrecioUnitario", "ZonaComercial", "Estado"};
@@ -22,29 +28,31 @@ public class ExcelExporter {
             }
 
             int rowNum = 1;
-            for (LineaPedido linea : lineasPedido) {
+            for (LineaPedido linea : lineasSeguras) {
+                if (linea == null) {
+                    continue;
+                }
                 XSSFRow row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(linea.getIdLinea());
-                row.createCell(1).setCellValue(linea.getUnidades());
-                row.createCell(2).setCellValue(linea.getDescripcionProducto());
-                row.createCell(3).setCellValue(linea.getCategoria());
-                row.createCell(4).setCellValue(linea.getPrecioVentaUnitario());
-                row.createCell(5).setCellValue(linea.getZonaComercial().toString());
-                row.createCell(6).setCellValue(linea.getEstado().toString());
+                setCellValue(row, 0, linea.getIdLinea());
+                setCellValue(row, 1, linea.getUnidades());
+                setCellValue(row, 2, linea.getDescripcionProducto());
+                setCellValue(row, 3, linea.getCategoria());
+                setCellValue(row, 4, linea.getPrecioVentaUnitario());
+                setCellValue(row, 5, linea.getZonaComercial());
+                setCellValue(row, 6, linea.getEstado());
             }
 
-            escribirFichero(workbook, filePath);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
+            workbook.write(outputStream);
+        } catch (IOException e) {
+            System.err.println("Error al exportar líneas de pedido: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error inesperado al exportar líneas de pedido: " + e.getMessage());
         }
     }
 
     public void exportReglasMargen(String filePath, List<ReglaMargen> reglasMargen) {
-        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+        List<ReglaMargen> reglasSeguras = reglasMargen == null ? Collections.emptyList() : reglasMargen;
+        try (XSSFWorkbook workbook = new XSSFWorkbook(); FileOutputStream outputStream = new FileOutputStream(filePath)) {
             XSSFSheet sheet = workbook.createSheet("ReglasMargen");
 
             XSSFRow headerRow = sheet.createRow(0);
@@ -54,27 +62,29 @@ public class ExcelExporter {
             }
 
             int rowNum = 1;
-            for (ReglaMargen regla : reglasMargen) {
+            for (ReglaMargen regla : reglasSeguras) {
+                if (regla == null) {
+                    continue;
+                }
                 XSSFRow row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(regla.getId());
-                row.createCell(1).setCellValue(regla.getCategoriaProductoAfectada());
-                row.createCell(2).setCellValue(regla.getMargenMinimoPortcentaje());
-                row.createCell(3).setCellValue(regla.isActiva());
-                row.createCell(4).setCellValue(regla.getDescripcion());
+                setCellValue(row, 0, regla.getId());
+                setCellValue(row, 1, regla.getCategoriaProductoAfectada());
+                setCellValue(row, 2, BigDecimal.valueOf(regla.getMargenMinimoPortcentaje()));
+                setCellValue(row, 3, regla.isActiva());
+                setCellValue(row, 4, regla.getDescripcion());
             }
 
-            escribirFichero(workbook, filePath);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
+            workbook.write(outputStream);
+        } catch (IOException e) {
+            System.err.println("Error al exportar reglas de margen: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error inesperado al exportar reglas de margen: " + e.getMessage());
         }
     }
 
     public void exportZonasComerciales(String filePath, List<ZonaComercial> zonasComerciales) {
-        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+        List<ZonaComercial> zonasSeguras = zonasComerciales == null ? Collections.emptyList() : zonasComerciales;
+        try (XSSFWorkbook workbook = new XSSFWorkbook(); FileOutputStream outputStream = new FileOutputStream(filePath)) {
             XSSFSheet sheet = workbook.createSheet("ZonasComerciales");
 
             XSSFRow headerRow = sheet.createRow(0);
@@ -84,31 +94,43 @@ public class ExcelExporter {
             }
 
             int rowNum = 1;
-            for (ZonaComercial zona : zonasComerciales) {
+            for (ZonaComercial zona : zonasSeguras) {
+                if (zona == null) {
+                    continue;
+                }
                 XSSFRow row = sheet.createRow(rowNum++);
-                row.createCell(0).setCellValue(zona.getId());
-                row.createCell(1).setCellValue(zona.getNombre());
-                row.createCell(2).setCellValue(zona.getPais());
-                row.createCell(3).setCellValue(zona.getResponsableComercial());
-                row.createCell(4).setCellValue(zona.getObjetivoFacturacionAnual());
+                setCellValue(row, 0, zona.getId());
+                setCellValue(row, 1, zona.getNombre());
+                setCellValue(row, 2, zona.getPais());
+                setCellValue(row, 3, zona.getResponsableComercial());
+                setCellValue(row, 4, BigDecimal.valueOf(zona.getObjetivoFacturacionAnual()));
             }
 
-            escribirFichero(workbook, filePath);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
+            workbook.write(outputStream);
+        } catch (IOException e) {
+            System.err.println("Error al exportar zonas comerciales: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error inesperado al exportar zonas comerciales: " + e.getMessage());
         }
     }
 
-    private void escribirFichero(XSSFWorkbook workbook, String filePath) {
-        try (FileOutputStream outputStream = new FileOutputStream(filePath)) {
-            workbook.write(outputStream);
-            workbook.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    private void setCellValue(XSSFRow row, int columnIndex, String value) {
+        row.createCell(columnIndex).setCellValue(value == null ? "" : value);
+    }
+
+    private void setCellValue(XSSFRow row, int columnIndex, Integer value) {
+        row.createCell(columnIndex).setCellValue(value == null ? "" : String.valueOf(value));
+    }
+
+    private void setCellValue(XSSFRow row, int columnIndex, boolean value) {
+        row.createCell(columnIndex).setCellValue(value);
+    }
+
+    private void setCellValue(XSSFRow row, int columnIndex, BigDecimal value) {
+        row.createCell(columnIndex).setCellValue(value == null ? "" : value.toPlainString());
+    }
+
+    private void setCellValue(XSSFRow row, int columnIndex, Enum<?> value) {
+        row.createCell(columnIndex).setCellValue(value == null ? "" : value.name());
     }
 }

@@ -1,5 +1,7 @@
 package model;
 
+import java.math.BigDecimal;
+
 public class LineaPedido {
 
     private Integer idLinea;
@@ -7,15 +9,15 @@ public class LineaPedido {
     private String referenciaProduto;
     private String descripcionProducto;
     private String categoria;
-    private double costeUnitario;
-    private double precioVentaUnitario;
+    private BigDecimal costeUnitario;
+    private BigDecimal precioVentaUnitario;
     private Integer unidades;
     private String fechaPedido;
     private Integer zonaComercial;
     private EstadoPedido estado;
 
     public LineaPedido(Integer idLinea, Integer idPedido, String referenciaProduto, String descripcionProducto,
-            String categoria, double costeUnitario, double precioVentaUnitario,
+            String categoria, BigDecimal costeUnitario, BigDecimal precioVentaUnitario,
             Integer unidades, String fechaPedido, Integer zonaComercial, EstadoPedido estado) {
         this.idLinea = idLinea;
         this.idPedido = idPedido;
@@ -70,19 +72,19 @@ public class LineaPedido {
         this.categoria = categoria;
     }
 
-    public double getCosteUnitario() {
+    public BigDecimal getCosteUnitario() {
         return costeUnitario;
     }
 
-    public void setCosteUnitario(double costeUnitario) {
+    public void setCosteUnitario(BigDecimal costeUnitario) {
         this.costeUnitario = costeUnitario;
     }
 
-    public double getPrecioVentaUnitario() {
+    public BigDecimal getPrecioVentaUnitario() {
         return precioVentaUnitario;
     }
 
-    public void setPrecioVentaUnitario(double precioVentaUnitario) {
+    public void setPrecioVentaUnitario(BigDecimal precioVentaUnitario) {
         this.precioVentaUnitario = precioVentaUnitario;
     }
 

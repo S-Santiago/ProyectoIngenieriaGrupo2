@@ -9,7 +9,7 @@ import persistence.CsvImporter;
 
 public class ImportKpiController {
        private  ExploradorController exploradorController= ExploradorController.getInstance();
-       private  CsvImporter csvImporter=new  CsvImporter();
+       private  CsvImporter csvImporter = new  CsvImporter();
        public void importar(String s){
         List<LineaPedido>list=csvImporter.importCSVLineaPedidos(s);
         exploradorController.setPedidos(list);

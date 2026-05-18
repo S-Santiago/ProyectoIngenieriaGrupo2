@@ -2,7 +2,7 @@ package model;
 
 public class ReglaMargen {
 
-    private int id;
+    private Integer id;
     private String categoriaProductoAfectada;
     private double margenMinimoPortcentaje;
     private boolean activa;
@@ -11,7 +11,7 @@ public class ReglaMargen {
     public ReglaMargen() {
     }
 
-    public ReglaMargen(int id, String categoriaProductoAfectada, double margenMinimoPortcentaje, boolean activa, String descripcion) {
+    public ReglaMargen(Integer id, String categoriaProductoAfectada, double margenMinimoPortcentaje, boolean activa, String descripcion) {
         this.id = id;
         this.categoriaProductoAfectada = categoriaProductoAfectada;
         this.margenMinimoPortcentaje = margenMinimoPortcentaje;
@@ -19,11 +19,11 @@ public class ReglaMargen {
         this.descripcion = descripcion;
     }
 
-    public int getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

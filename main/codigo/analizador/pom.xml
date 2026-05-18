@@ -9,8 +9,9 @@
   
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.release>25</maven.compiler.release>
-    <javafx.version>25.0.1</javafx.version>
+    <!-- Compilar a release 21 para que el runtime embebido de VS Code (JRE 21) pueda ejecutar las clases -->
+    <maven.compiler.release>21</maven.compiler.release>
+    <javafx.version>21.0.2</javafx.version>
   </properties>
   
   <dependencies>

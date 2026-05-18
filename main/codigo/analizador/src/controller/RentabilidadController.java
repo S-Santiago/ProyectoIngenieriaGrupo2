@@ -1,33 +1,37 @@
 package controller;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 
 import model.ReglaMargen;
 import model.ZonaComercial;
 import persistence.CsvImporter;
-import persistence.JsonRepository;
 import persistence.JsonRepositoryReglaMargen;
 import persistence.JsonRepositoryZonaComercial;
 
 public class RentabilidadController {
-    private JsonRepositoryZonaComercial repoZonas = new JsonRepositoryZonaComercial();
-    private JsonRepositoryReglaMargen repoReglas = new JsonRepositoryReglaMargen();
-    private CsvImporter csvImporter = new CsvImporter();
+    private final JsonRepositoryZonaComercial repoZonas = new JsonRepositoryZonaComercial();
+    private final JsonRepositoryReglaMargen repoReglas = new JsonRepositoryReglaMargen();
+    private final CsvImporter csvImporter = new CsvImporter();
 
     public void cargarDatos() {
         //carga zona
         List<ZonaComercial>zonas=repoZonas.findAll();
         if(zonas.isEmpty()){
             System.out.println(" JSON de Zonas vacío  Cargando desde CSV...");
-            //si no exite cargamos desde csv
-            List<ZonaComercial>zonaComercialsCSv=csvImporter.importCSVZonasComerciales("data/zonas.csv");
-            for(ZonaComercial z:zonaComercialsCSv){
-                //save a repozonas
-                repoZonas.save(z);
+            if (Files.exists(Paths.get("data", "zonas.csv"))) {
+                try {
+                    List<ZonaComercial>zonaComercialsCSv=csvImporter.importCSVZonasComerciales("data/zonas.csv");
+                    for(ZonaComercial z:zonaComercialsCSv){
+                        //save a repozonas
+                        repoZonas.save(z);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Aviso: no se pudo cargar data/zonas.csv. Se continuará con la lista vacía. Detalle: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Aviso: no existe data/zonas.csv. Se continuará con la lista vacía.");
             }
         }else {
             System.out.println("Zonas cargadas desde JSON correctamente.");
@@ -36,16 +40,24 @@ public class RentabilidadController {
         
         if (reglas.isEmpty()) {
             System.out.println("JSON de Reglas vacío. Cargando desde CSV...");
-            List<ReglaMargen> reglasCSV = csvImporter.importCSVReglasMargen("data/reglas.csv");
-            for (ReglaMargen r : reglasCSV) {
-                repoReglas.save(r);
+            if (Files.exists(Paths.get("data", "reglas.csv"))) {
+                try {
+                    List<ReglaMargen> reglasCSV = csvImporter.importCSVReglasMargen("data/reglas.csv");
+                    for (ReglaMargen r : reglasCSV) {
+                        repoReglas.save(r);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Aviso: no se pudo cargar data/reglas.csv. Se continuará con la lista vacía. Detalle: " + e.getMessage());
+                }
+            } else {
+                System.out.println("Aviso: no existe data/reglas.csv. Se continuará con la lista vacía.");
             }
         } else {
             System.out.println("Reglas cargadas desde JSON correctamente.");
         }
     }
     //C
- public void addzona(Object obj) {
+    public void addZona(Object obj) {
         if (!(obj instanceof ZonaComercial)) {
             System.out.println("Error: El objeto no es de la clase ZonaComercial");
             return;
@@ -55,16 +67,16 @@ public class RentabilidadController {
         System.out.println("Zona guardada correctamente.");
     }
 
-    public void addreglademargen(ReglaMargen nuevaRegla) {
+    public void addMarginRule(ReglaMargen nuevaRegla) {
         repoReglas.save(nuevaRegla);
         System.out.println("Regla de margen guardada correctamente.");
     }
     //R
-    public List<ZonaComercial> ReadTodaszona() {
+    public List<ZonaComercial> readAllZones() {
         return repoZonas.findAll();
     }
-    public  List<ReglaMargen>ReadTOdosmargen(){
-        return  repoReglas.findAll();
+    public List<ReglaMargen> readAllMarginRules() {
+        return repoReglas.findAll();
     }
     // eleminar
 

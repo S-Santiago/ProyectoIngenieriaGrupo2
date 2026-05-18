@@ -1,5 +1,7 @@
 package controller;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -11,78 +13,99 @@ import model.LineaPedido;
 
 
 public class CalculadoraFinanciera {
-    //un singleton para compartir la misma instancia de exploradorController entre los controladores
-     ExploradorController exploradorController= ExploradorController.getInstance();
-     private Map<Integer, Double> margenBrutoPedidos=new HashMap<>();
-     private Map<Integer, Double> porcentajeMargenBrutoPedidos=new HashMap<>();
-     //un metodo para ordena el valor de mapa
-     public  Map<String,Double>ordenMap(Map<String,Double>dMap){
-        Set<Map.Entry<String,Double>>map_para_ordenar=dMap.entrySet();
-     List<Map.Entry<String,Double>>lista_para_ordenar=new  ArrayList<>(map_para_ordenar);
-     lista_para_ordenar.sort((a,b)->b.getValue().compareTo(a.getValue()));
-     Map<String,Double>resultado=new LinkedHashMap<>();
-     for(Map.Entry<String,Double>d:lista_para_ordenar){
-        resultado.put(d.getKey(), d.getValue());
-     }
-     return  resultado;
-     }
-        //metodo para calcular el margen bruto total de todos los pedidos, sumando el margen bruto de cada pedido individualmente
-        public double calcularMargenBrutoTotal(){
-            double margenBrutoTotal=0.0;
-            //obtener la lista de pedidos desde el exploradorController, que se supone que ya ha sido cargada con los datos de los pedidos
-            List<LineaPedido> pedidos=exploradorController.getPedidos();
-            margenBrutoPedidos.clear();
-            porcentajeMargenBrutoPedidos.clear();
-            for(LineaPedido pedido:pedidos ){
-                double costeTotal=pedido.getCosteUnitario()*pedido.getUnidades();
-                double precioVentaTotal=pedido.getPrecioVentaUnitario()*pedido.getUnidades();
-                double margenBrutoPedido=precioVentaTotal-costeTotal;
-                 margenBrutoTotal+=margenBrutoPedido;
-                //almacenar el margen bruto de cada pedido en un mapa, utilizando el id del pedido como clave, para poder acceder a él posteriormente si es necesario
-                margenBrutoPedidos.put(pedido.getIdLinea(),margenBrutoPedido);
-                double porcentaje = 0.0;
-            if (precioVentaTotal > 0) {
-                porcentaje = (margenBrutoPedido / precioVentaTotal) * 100;
-            }
-                porcentajeMargenBrutoPedidos.put(pedido.getIdLinea(),porcentaje);
-            }
-            return margenBrutoTotal;
-        }
-        //Ranking por Margen (Margen Bruto)
-        public Map<String,Double>GenerarRankCategorias(){
-            Map<String,Double>Ranking=new HashMap<>();
-            List<LineaPedido>Pedidos=exploradorController.getPedidos();
-            for(LineaPedido p:Pedidos){
-                double costeTotal=p.getCosteUnitario()*p.getUnidades();
-                double precioVentaTotal=p.getPrecioVentaUnitario()*p.getUnidades();
-                double margenBrutoPedido=precioVentaTotal-costeTotal;
-                String categorias=p.getCategoria();
-                if(Ranking.containsKey(categorias)){
-                    double  nuevoprecio=Ranking.get(categorias)+margenBrutoPedido;
-                    Ranking.put(categorias, nuevoprecio);
-                }else{
-                    Ranking.put(categorias, margenBrutoPedido);
-                }
-
-            }
-
-            return  ordenMap(Ranking);
-        }
-        //Ranking por Facturación （no cuenta coste
-        public Map<String, Double> GenerarRankCategoriasPorFacturacion() {
-        Map<String, Double> Ranking = new HashMap<>();
-        List<LineaPedido> Pedidos = exploradorController.getPedidos();
-        for (LineaPedido p : Pedidos) {
-        double precioVentaTotal=p.getPrecioVentaUnitario()*p.getUnidades();
-        String cat = p.getCategoria();
-        if(Ranking.containsKey(cat)){
-                    double  nuevoprecio=Ranking.get(cat)+precioVentaTotal;
-                    Ranking.put(cat, nuevoprecio);
-                }else{
-                    Ranking.put(cat, precioVentaTotal);
-                }
-     }
+    // Singleton para compartir la misma instancia de ExploradorController
+    private final ExploradorController exploradorController = ExploradorController.getInstance();
+    private final Map<Integer, BigDecimal> margenBrutoPedidos = new HashMap<>();
+    private final Map<Integer, BigDecimal> porcentajeMargenBrutoPedidos = new HashMap<>();
     
-     return ordenMap(Ranking);
+    // Método para ordenar un mapa por valor en orden descendente
+    public Map<String, BigDecimal> ordenMap(Map<String, BigDecimal> dMap) {
+        Set<Map.Entry<String, BigDecimal>> mapParaOrdenar = dMap.entrySet();
+        List<Map.Entry<String, BigDecimal>> listaParaOrdenar = new ArrayList<>(mapParaOrdenar);
+        listaParaOrdenar.sort((a, b) -> b.getValue().compareTo(a.getValue()));
+        Map<String, BigDecimal> resultado = new LinkedHashMap<>();
+        for (Map.Entry<String, BigDecimal> d : listaParaOrdenar) {
+            resultado.put(d.getKey(), d.getValue());
+        }
+        return resultado;
+    }
+    
+    // Método para calcular el margen bruto total de todos los pedidos
+    public BigDecimal calcularMargenBrutoTotal() {
+        BigDecimal margenBrutoTotal = BigDecimal.ZERO;
+        List<LineaPedido> pedidos = exploradorController.getPedidos();
+        margenBrutoPedidos.clear();
+        porcentajeMargenBrutoPedidos.clear();
+        if (pedidos == null || pedidos.isEmpty()) {
+            return BigDecimal.ZERO;
+        }
+
+        for (LineaPedido pedido : pedidos) {
+            BigDecimal costeTotal = multiplicarMonetario(pedido.getCosteUnitario(), pedido.getUnidades());
+            BigDecimal precioVentaTotal = multiplicarMonetario(pedido.getPrecioVentaUnitario(), pedido.getUnidades());
+            BigDecimal margenBrutoPedido = precioVentaTotal.subtract(costeTotal);
+            margenBrutoTotal = margenBrutoTotal.add(margenBrutoPedido);
+            if (pedido.getIdLinea() != null) {
+                margenBrutoPedidos.put(pedido.getIdLinea(), margenBrutoPedido);
+                porcentajeMargenBrutoPedidos.put(pedido.getIdLinea(), calcularPorcentajeSeguro(margenBrutoPedido, precioVentaTotal));
+            }
+        }
+        return margenBrutoTotal;
+    }
+    
+    // Ranking por Margen (Margen Bruto)
+    public Map<String, BigDecimal> generarRankCategorias() {
+        Map<String, BigDecimal> ranking = new HashMap<>();
+        List<LineaPedido> pedidos = exploradorController.getPedidos();
+        if (pedidos == null || pedidos.isEmpty()) {
+            return new LinkedHashMap<>();
+        }
+
+        for (LineaPedido p : pedidos) {
+            String categoria = normalizarCategoria(p.getCategoria());
+            BigDecimal costeTotal = multiplicarMonetario(p.getCosteUnitario(), p.getUnidades());
+            BigDecimal precioVentaTotal = multiplicarMonetario(p.getPrecioVentaUnitario(), p.getUnidades());
+            BigDecimal margenBrutoPedido = precioVentaTotal.subtract(costeTotal);
+            ranking.merge(categoria, margenBrutoPedido, BigDecimal::add);
+        }
+        return ordenMap(ranking);
+    }
+    
+    // Ranking por Factuación (no cuenta coste)
+    public Map<String, BigDecimal> generarRankCategoriasPorFacturacion() {
+        Map<String, BigDecimal> ranking = new HashMap<>();
+        List<LineaPedido> pedidos = exploradorController.getPedidos();
+        if (pedidos == null || pedidos.isEmpty()) {
+            return new LinkedHashMap<>();
+        }
+
+        for (LineaPedido p : pedidos) {
+            String categoria = normalizarCategoria(p.getCategoria());
+            BigDecimal precioVentaTotal = multiplicarMonetario(p.getPrecioVentaUnitario(), p.getUnidades());
+            ranking.merge(categoria, precioVentaTotal, BigDecimal::add);
+        }
+        return ordenMap(ranking);
 }
+
+    private BigDecimal multiplicarMonetario(BigDecimal valorUnitario, Integer unidades) {
+        BigDecimal precio = valorUnitario == null ? BigDecimal.ZERO : valorUnitario;
+        BigDecimal cantidad = unidades == null ? BigDecimal.ZERO : BigDecimal.valueOf(unidades.longValue());
+        return precio.multiply(cantidad);
+    }
+
+    private BigDecimal calcularPorcentajeSeguro(BigDecimal numerador, BigDecimal denominador) {
+        if (denominador == null || denominador.compareTo(BigDecimal.ZERO) == 0) {
+            return BigDecimal.ZERO;
+        }
+        return numerador
+                .multiply(BigDecimal.valueOf(100))
+                .divide(denominador, 4, RoundingMode.HALF_UP);
+    }
+
+    private String normalizarCategoria(String categoria) {
+        if (categoria == null || categoria.trim().isEmpty()) {
+            return "(sin categoría)";
+        }
+        return categoria.trim();
+    }
 }

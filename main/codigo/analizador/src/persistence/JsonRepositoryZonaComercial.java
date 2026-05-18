@@ -1,7 +1,9 @@
 package persistence;
 
-import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,9 +13,10 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import model.ZonaComercial;
 
 public class JsonRepositoryZonaComercial {
-    private static final String FILE_PATH = "../resources/data/zonas.json";
+    private static final Path DATA_DIRECTORY = Paths.get("data");
+    private static final Path FILE_PATH = DATA_DIRECTORY.resolve("zonas.json");
     private final ObjectMapper mapper = new ObjectMapper();
-    private List<ZonaComercial> zonasComerciales;
+    private final List<ZonaComercial> zonasComerciales;
 
     public JsonRepositoryZonaComercial() {
         this.zonasComerciales = cargarDesdeFichero();
@@ -26,21 +29,29 @@ public class JsonRepositoryZonaComercial {
     }
 
     public ZonaComercial findById(String id) {
+        Integer idParseado = parseId(id);
+        if (idParseado == null) {
+            return null;
+        }
         return zonasComerciales.stream()
-                .filter(z -> z.getId().equals(id))
+                .filter(z -> idParseado.equals(z.getId()))
                 .findFirst()
                 .orElse(null);
     }
 
     public void save(ZonaComercial zona) {
         // Si ya existe, la reemplaza; si no, la añade
-        zonasComerciales.removeIf(z -> z.getId().equals(zona.getId()));
+        zonasComerciales.removeIf(z -> zona.getId().equals(z.getId()));
         zonasComerciales.add(zona);
         guardarEnFichero();
     }
 
     public boolean delete(String id) {
-        boolean eliminado = zonasComerciales.removeIf(z -> z.getId().equals(id));
+        Integer idParseado = parseId(id);
+        if (idParseado == null) {
+            return false;
+        }
+        boolean eliminado = zonasComerciales.removeIf(z -> idParseado.equals(z.getId()));
         if (eliminado) guardarEnFichero();
         return eliminado;
     }
@@ -48,26 +59,39 @@ public class JsonRepositoryZonaComercial {
     // Lectura / Escritura JSON 
 
     private List<ZonaComercial> cargarDesdeFichero() {
-        File fichero = new File(FILE_PATH);
-        if (!fichero.exists()) {
-            return new ArrayList<>(); // Primera vez: lista vacía
-        }
         try {
-            return mapper.readValue(fichero, new TypeReference<List<ZonaComercial>>() {});
+            Files.createDirectories(DATA_DIRECTORY);
         } catch (IOException e) {
-            System.err.println("Error al leer zonas_comerciales.json: " + e.getMessage());
+            System.err.println("No se pudo crear el directorio data: " + e.getMessage());
+            return new ArrayList<>();
+        }
+
+        if (!Files.exists(FILE_PATH)) {
+            return new ArrayList<>();
+        }
+
+        try {
+            return mapper.readValue(FILE_PATH.toFile(), new TypeReference<List<ZonaComercial>>() {});
+        } catch (IOException e) {
+            System.err.println("Error al leer zonas.json: " + e.getMessage());
             return new ArrayList<>();
         }
     }
 
     private void guardarEnFichero() {
         try {
-            // Crea la carpeta data/ si no existe
-            new File("data").mkdirs();
-            // writerWithDefaultPrettyPrinter hace el JSON legible con indentación
-            mapper.writerWithDefaultPrettyPrinter().writeValue(new File(FILE_PATH), zonasComerciales);
+            Files.createDirectories(DATA_DIRECTORY);
+            mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), zonasComerciales);
         } catch (IOException e) {
-            System.err.println("Error al guardar zonas_comerciales.json: " + e.getMessage());
+            System.err.println("Error al guardar zonas.json: " + e.getMessage());
+        }
+    }
+
+    private Integer parseId(String id) {
+        try {
+            return Integer.valueOf(id);
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 }

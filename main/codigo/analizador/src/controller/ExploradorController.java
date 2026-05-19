@@ -1,7 +1,8 @@
 package controller;
 
+import java.io.IOException;
 import java.math.BigDecimal;
-import java.net.URISyntaxException;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -14,6 +15,7 @@ import java.util.Set;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
@@ -96,24 +98,41 @@ public class ExploradorController {
             return;
         }
 
-        try {
-            var recurso = getClass().getResource("/data/lineas_pedidos.csv");
-            if (recurso == null) {
-                actualizarEstado("No se encontró el CSV de pedidos en /data/lineas_pedidos.csv.");
-                return;
+        // Cargar en segundo plano para no bloquear el hilo de la interfaz
+        actualizarEstado("Cargando pedidos desde CSV...");
+
+        Task<List<LineaPedido>> tareaCarga = new Task<>() {
+            @Override
+            protected List<LineaPedido> call() throws Exception {
+                var recurso = getClass().getResource("/data/lineas_pedidos.csv");
+                if (recurso == null) {
+                    throw new IOException("No se encontró el CSV de pedidos en /data/lineas_pedidos.csv.");
+                }
+                return csvImporter.importCSVLineaPedidos(Path.of(recurso.toURI()).toString());
             }
+        };
 
-            pedidos.addAll(csvImporter.importCSVLineaPedidos(recurso.toURI().getPath()));
-
-            if (pedidos.isEmpty()) {
+        tareaCarga.setOnSucceeded(evt -> {
+            List<LineaPedido> cargados = tareaCarga.getValue();
+            if (cargados == null || cargados.isEmpty()) {
                 actualizarEstado("El CSV no devolvió pedidos válidos.");
             } else {
+                pedidos.addAll(cargados);
                 actualizarEstado("Pedidos cargados desde CSV: " + pedidos.size());
+                refrescarTabla();
             }
-        } catch (URISyntaxException exception) {
-            actualizarEstado("No se pudo resolver la ruta del CSV: " + exception.getMessage());
-        }
-        }
+        });
+
+        tareaCarga.setOnFailed(evt -> {
+            Throwable ex = tareaCarga.getException();
+            String msg = ex == null ? "Error desconocido al cargar CSV." : ex.getMessage();
+            actualizarEstado("Error al cargar CSV: " + msg);
+        });
+
+        Thread hilo = new Thread(tareaCarga, "csv-loader");
+        hilo.setDaemon(true);
+        hilo.start();
+    }
 
     private void configurarColumnas() {
         idLineaColumn.setCellValueFactory(new PropertyValueFactory<>("idLinea"));
@@ -246,12 +265,12 @@ public class ExploradorController {
             valido = false;
         }
 
-        if (pedido.getCosteUnitario() != null && pedido.getCosteUnitario().compareTo(BigDecimal.ZERO) < 0) {
+        if (pedido.getCosteUnitario() == null || pedido.getCosteUnitario().compareTo(BigDecimal.ZERO) <= 0) {
             validationErrors.add(String.format("El pedido con id %d tiene coste unitario negativo.", pedido.getIdPedido()));
             valido = false;
         }
 
-        if (pedido.getPrecioVentaUnitario() != null && pedido.getPrecioVentaUnitario().compareTo(BigDecimal.ZERO) < 0) {
+        if (pedido.getPrecioVentaUnitario() == null || pedido.getPrecioVentaUnitario().compareTo(BigDecimal.ZERO) <= 0) {
             validationErrors.add(String.format("El pedido con id %d tiene precio de venta unitario negativo.", pedido.getIdPedido()));
             valido = false;
         }
@@ -261,8 +280,8 @@ public class ExploradorController {
             valido = false;
         } else {
             try {
-                DATE_TIME_FORMATTER.parse(pedido.getFechaPedido());
-            } catch (NumberFormatException exception) {
+                parseFechaPedido(pedido.getFechaPedido());
+            } catch (DateTimeParseException exception) {
                 validationErrors.add(String.format("El pedido con id %d tiene una fecha con formato incorrecto.", pedido.getIdPedido()));
                 valido = false;
             }
@@ -273,7 +292,7 @@ public class ExploradorController {
             valido = false;
         }
 
-        if (pedido.getZonaComercial() == null || pedido.getZonaComercial() < 0) {
+        if (pedido.getZonaComercial() == null || pedido.getZonaComercial() <= 0) {
             validationErrors.add(String.format("El pedido con id %d no tiene zona comercial válida.", pedido.getIdPedido()));
             valido = false;
         }
@@ -350,17 +369,13 @@ public class ExploradorController {
             return;
         }
 
-        if (Platform.isFxApplicationThread()) {
+        Runnable accion = () -> {
             pedidosTabla.setAll(pedidos);
             pedidosTableView.setItems(FXCollections.observableArrayList(pedidosTabla));
             pedidosTableView.refresh();
-        } else {
-            Platform.runLater(() -> {
-                pedidosTabla.setAll(pedidos);
-                pedidosTableView.setItems(FXCollections.observableArrayList(pedidosTabla));
-                pedidosTableView.refresh();
-            });
-        }
+        };
+
+        ejecutarEnHiloFxSiEsPosible(accion);
     }
 
     public List<LineaPedido> filtrarPorZonaComercial(int idZona) {
@@ -391,8 +406,8 @@ public class ExploradorController {
         List<LineaPedido> filtrados = new ArrayList<>();
 
         try {
-            LocalDate inicio = LocalDate.parse(fechaInicio, DATE_TIME_FORMATTER);
-            LocalDate fin = LocalDate.parse(fechaFin, DATE_TIME_FORMATTER);
+            LocalDate inicio = parseFechaPedido(fechaInicio);
+            LocalDate fin = parseFechaPedido(fechaFin);
 
             if (inicio.isAfter(fin)) {
                 validationErrors.add("La fecha de inicio no puede ser posterior a la fecha de fin.");
@@ -404,7 +419,7 @@ public class ExploradorController {
                     continue;
                 }
 
-                LocalDate fechaPedido = LocalDate.parse(pedido.getFechaPedido(), DATE_TIME_FORMATTER);
+                LocalDate fechaPedido = parseFechaPedido(pedido.getFechaPedido());
                 if (!fechaPedido.isBefore(inicio) && !fechaPedido.isAfter(fin)) {
                     filtrados.add(pedido);
                 }
@@ -544,11 +559,7 @@ public class ExploradorController {
             }
         };
 
-        if (Platform.isFxApplicationThread()) {
-            accion.run();
-        } else {
-            Platform.runLater(accion);
-        }
+        ejecutarEnHiloFxSiEsPosible(accion);
     }
 
     private void actualizarEstado(String mensaje) {
@@ -558,10 +569,26 @@ public class ExploradorController {
             }
         };
 
-        if (Platform.isFxApplicationThread()) {
+        ejecutarEnHiloFxSiEsPosible(accion);
+    }
+
+    private void ejecutarEnHiloFxSiEsPosible(Runnable accion) {
+        try {
+            if (Platform.isFxApplicationThread()) {
+                accion.run();
+            } else {
+                Platform.runLater(accion);
+            }
+        } catch (IllegalStateException exception) {
             accion.run();
-        } else {
-            Platform.runLater(accion);
+        }
+    }
+
+    private LocalDate parseFechaPedido(String textoFecha) {
+        try {
+            return LocalDate.parse(textoFecha, DateTimeFormatter.ISO_LOCAL_DATE);
+        } catch (DateTimeParseException ignored) {
+            return LocalDate.parse(textoFecha, DATE_TIME_FORMATTER);
         }
     }
 }

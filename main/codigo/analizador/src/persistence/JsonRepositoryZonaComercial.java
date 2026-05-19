@@ -40,6 +40,20 @@ public class JsonRepositoryZonaComercial {
     }
 
     public void save(ZonaComercial zona) {
+        // Validar antes de guardar
+        if (zona == null) {
+            throw new IllegalArgumentException("La zona comercial no puede ser nula");
+        }
+        if (zona.getId() == null || zona.getId() <= 0) {
+            throw new IllegalArgumentException("El ID de zona debe ser un número positivo");
+        }
+        if (zona.getNombre() == null || zona.getNombre().trim().isEmpty()) {
+            throw new IllegalArgumentException("El nombre de zona no puede estar vacío");
+        }
+        if (zona.getObjetivoFacturacionAnual() < 0) {
+            throw new IllegalArgumentException("El objetivo de facturación no puede ser negativo");
+        }
+        
         // Si ya existe, la reemplaza; si no, la añade
         zonasComerciales.removeIf(z -> zona.getId().equals(z.getId()));
         zonasComerciales.add(zona);

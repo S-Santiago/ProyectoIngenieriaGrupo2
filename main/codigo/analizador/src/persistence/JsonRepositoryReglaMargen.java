@@ -40,6 +40,20 @@ public class JsonRepositoryReglaMargen {
     }
 
     public void save(ReglaMargen regla) {
+        // Validar antes de guardar
+        if (regla == null) {
+            throw new IllegalArgumentException("La regla de margen no puede ser nula");
+        }
+        if (regla.getId() == null || regla.getId() <= 0) {
+            throw new IllegalArgumentException("El ID de regla debe ser un número positivo");
+        }
+        if (regla.getCategoriaProductoAfectada() == null || regla.getCategoriaProductoAfectada().trim().isEmpty()) {
+            throw new IllegalArgumentException("La categoría de producto no puede estar vacía");
+        }
+        if (regla.getMargenMinimoPortcentaje() < 0 || regla.getMargenMinimoPortcentaje() > 100) {
+            throw new IllegalArgumentException("El margen mínimo debe estar entre 0 y 100%");
+        }
+        
         reglas.removeIf(r -> regla.getId().equals(r.getId()));
         reglas.add(regla);
         guardarEnFichero();

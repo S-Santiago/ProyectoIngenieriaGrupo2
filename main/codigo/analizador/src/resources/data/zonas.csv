@@ -1,0 +1,6 @@
+id,nombre,pais,responsableComercial,objetivoFacturacionAnual
+1,Zona Ibérica,España,"Juan García López",500000.0
+2,Zona Europa Central,Francia,"Marie Dubois",750000.0
+3,Zona América Latina,México,"Carlos Rodríguez Martínez",600000.0
+4,Zona Asia Pacífico,Singapur,"David Chen",1000000.0
+5,Zona Europa del Este,Polonia,"Anna Kowalski",400000.0

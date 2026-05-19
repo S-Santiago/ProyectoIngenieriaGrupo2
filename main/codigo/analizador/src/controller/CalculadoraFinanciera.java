@@ -8,8 +8,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import model.LineaPedido;
+import model.ReglaMargen;
+import model.ZonaComercial;
+import persistence.JsonRepositoryReglaMargen;
+import persistence.JsonRepositoryZonaComercial;
 
 
 public class CalculadoraFinanciera {
@@ -107,5 +112,136 @@ public class CalculadoraFinanciera {
             return "(sin categoría)";
         }
         return categoria.trim();
+    }
+
+    // ==================== NUEVOS MÉTODOS DE NEGOCIO ====================
+
+    /**
+     * Detecta todas las líneas de pedido cuyo margen porcentual está por debajo
+     * del margen mínimo establecido en su regla de categoría activa.
+     * 
+     * @return Lista de líneas que incumplen el margen mínimo (con detalles de incidencia)
+     */
+    public List<Map<String, Object>> detectarLineasBajoMargen() {
+        List<Map<String, Object>> incidencias = new ArrayList<>();
+        List<LineaPedido> pedidos = exploradorController.getPedidos();
+        JsonRepositoryReglaMargen repoReglas = new JsonRepositoryReglaMargen();
+        
+        if (pedidos == null || pedidos.isEmpty()) {
+            return incidencias;
+        }
+
+        List<ReglaMargen> reglasActivas = repoReglas.findAll().stream()
+            .filter(ReglaMargen::isActiva)
+            .collect(Collectors.toList());
+
+        for (LineaPedido linea : pedidos) {
+            String categoria = normalizarCategoria(linea.getCategoria());
+            
+            // Buscar regla activa para esta categoría
+            for (ReglaMargen regla : reglasActivas) {
+                if (normalizarCategoria(regla.getCategoriaProductoAfectada()).equals(categoria)) {
+                    // Calcular margen % de la línea
+                    BigDecimal costeTotal = multiplicarMonetario(linea.getCosteUnitario(), linea.getUnidades());
+                    BigDecimal precioVentaTotal = multiplicarMonetario(linea.getPrecioVentaUnitario(), linea.getUnidades());
+                    BigDecimal margenBrutoPedido = precioVentaTotal.subtract(costeTotal);
+                    BigDecimal margenPorcentaje = calcularPorcentajeSeguro(margenBrutoPedido, precioVentaTotal);
+                    
+                    // Comparar con margen mínimo requerido
+                    if (margenPorcentaje.compareTo(BigDecimal.valueOf(regla.getMargenMinimoPortcentaje())) < 0) {
+                        Map<String, Object> incidencia = new HashMap<>();
+                        incidencia.put("idLinea", linea.getIdLinea());
+                        incidencia.put("producto", linea.getDescripcionProducto());
+                        incidencia.put("categoria", categoria);
+                        incidencia.put("margenActual", margenPorcentaje.setScale(2, RoundingMode.HALF_UP));
+                        incidencia.put("margenRequerido", regla.getMargenMinimoPortcentaje());
+                        incidencia.put("deficiencia", BigDecimal.valueOf(regla.getMargenMinimoPortcentaje())
+                            .subtract(margenPorcentaje).setScale(2, RoundingMode.HALF_UP));
+                        incidencias.add(incidencia);
+                    }
+                    break; // Solo una regla por categoría
+                }
+            }
+        }
+        return incidencias;
+    }
+
+    /**
+     * Calcula la desviación entre la facturación real y el objetivo de facturación
+     * de una zona comercial específica.
+     * 
+     * @param idZona ID de la zona comercial
+     * @return Map con facturación real, objetivo, desviación en valor y porcentaje
+     */
+    public Map<String, BigDecimal> calcularDesviacionObjetivo(Integer idZona) {
+        Map<String, BigDecimal> resultado = new HashMap<>();
+        JsonRepositoryZonaComercial repoZonas = new JsonRepositoryZonaComercial();
+        List<LineaPedido> pedidos = exploradorController.getPedidos();
+
+        ZonaComercial zona = repoZonas.findById(idZona.toString());
+        if (zona == null) {
+            resultado.put("objetivo", BigDecimal.ZERO);
+            resultado.put("real", BigDecimal.ZERO);
+            resultado.put("desviacion", BigDecimal.ZERO);
+            resultado.put("porcentajeDesviacion", BigDecimal.ZERO);
+            return resultado;
+        }
+
+        // Calcular facturación real de la zona
+        BigDecimal facturacionReal = BigDecimal.ZERO;
+        if (pedidos != null) {
+            facturacionReal = pedidos.stream()
+                .filter(p -> p.getZonaComercial() != null && p.getZonaComercial().equals(idZona))
+                .map(p -> multiplicarMonetario(p.getPrecioVentaUnitario(), p.getUnidades()))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+
+        BigDecimal objetivo = BigDecimal.valueOf(zona.getObjetivoFacturacionAnual());
+        BigDecimal desviacion = facturacionReal.subtract(objetivo);
+        BigDecimal porcentajeDesviacion = calcularPorcentajeSeguro(desviacion, objetivo);
+
+        resultado.put("zona", BigDecimal.valueOf(idZona));
+        resultado.put("objetivo", objetivo.setScale(2, RoundingMode.HALF_UP));
+        resultado.put("real", facturacionReal.setScale(2, RoundingMode.HALF_UP));
+        resultado.put("desviacion", desviacion.setScale(2, RoundingMode.HALF_UP));
+        resultado.put("porcentajeDesviacion", porcentajeDesviacion.setScale(2, RoundingMode.HALF_UP));
+
+        return resultado;
+    }
+
+    /**
+     * Genera un ranking de todas las zonas comerciales mostrando su facturación real
+     * y desviación respecto al objetivo.
+     * 
+     * @return Lista de zonas con su desempeño ordenadas por desviación (mayor primero)
+     */
+    public List<Map<String, Object>> generarRankingZonasPorDesviacion() {
+        List<Map<String, Object>> ranking = new ArrayList<>();
+        JsonRepositoryZonaComercial repoZonas = new JsonRepositoryZonaComercial();
+        List<ZonaComercial> zonas = repoZonas.findAll();
+
+        for (ZonaComercial zona : zonas) {
+            Map<String, BigDecimal> desviacion = calcularDesviacionObjetivo(zona.getId());
+            
+            Map<String, Object> entry = new HashMap<>();
+            entry.put("idZona", zona.getId());
+            entry.put("nombre", zona.getNombre());
+            entry.put("pais", zona.getPais());
+            entry.put("objetivo", desviacion.get("objetivo"));
+            entry.put("real", desviacion.get("real"));
+            entry.put("desviacion", desviacion.get("desviacion"));
+            entry.put("porcentaje", desviacion.get("porcentajeDesviacion"));
+            
+            ranking.add(entry);
+        }
+
+        // Ordenar por desviación (descendente) - primero las que más superan el objetivo
+        ranking.sort((a, b) -> {
+            BigDecimal desv1 = (BigDecimal) a.get("desviacion");
+            BigDecimal desv2 = (BigDecimal) b.get("desviacion");
+            return desv2.compareTo(desv1);
+        });
+
+        return ranking;
     }
 }

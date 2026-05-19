@@ -24,4 +24,11 @@ public class ConsolaErroresDialog {
     public static void mostrarExito(String titulo, String mensaje) {
         JOptionPane.showMessageDialog(null, mensaje, titulo, JOptionPane.INFORMATION_MESSAGE);
     }
+
+    /**
+     * Alias de mostrarExito para mostrar información
+     */
+    public static void mostrarInfo(String titulo, String mensaje) {
+        mostrarExito(titulo, mensaje);
+    }
 }

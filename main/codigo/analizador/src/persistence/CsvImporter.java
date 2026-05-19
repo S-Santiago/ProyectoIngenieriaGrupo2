@@ -19,7 +19,8 @@ import model.ZonaComercial;
 public class CsvImporter {
     private static final DateTimeFormatter FECHA_DD_MM_YYYY = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter FECHA_YYYY_MM_DD = DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT);
-    private static final DateTimeFormatter FECHA_NORMALIZADA = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter FECHA_DD_MM_YYYY_DASH = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter FECHA_ISO = DateTimeFormatter.ISO_LOCAL_DATE;
 
     public List<LineaPedido> importCSVLineaPedidos(String filePath) {
         
@@ -46,11 +47,11 @@ public class CsvImporter {
                     String referenciaProducto = valorNoVacio(values.get(2), "Referencia de producto", contadorLineas, 3);
                     String descripcionProducto = valorNoVacio(values.get(3), "Descripción de producto", contadorLineas, 4);
                     String categoria = valorNoVacio(values.get(4), "Categoría", contadorLineas, 5);
-                    BigDecimal costeUnitario = parseDecimalNoNegativo(values.get(5), "Coste unitario", contadorLineas, 6);
-                    BigDecimal precioVentaUnitario = parseDecimalNoNegativo(values.get(6), "Precio de venta unitario", contadorLineas, 7);
-                    int unidades = parseEnteroNoNegativo(values.get(7), "Número de unidades", contadorLineas, 8);
+                    BigDecimal costeUnitario = parseDecimalPositivo(values.get(5), "Coste unitario", contadorLineas, 6);
+                    BigDecimal precioVentaUnitario = parseDecimalPositivo(values.get(6), "Precio de venta unitario", contadorLineas, 7);
+                    int unidades = parseEnteroPositivo(values.get(7), "Número de unidades", contadorLineas, 8);
                     String fechaPedido = parseFechaFlexible(values.get(8), "Fecha de pedido", contadorLineas, 9);
-                    int zonaComercial = parseEnteroNoNegativo(values.get(9), "Zona comercial", contadorLineas, 10);
+                    int zonaComercial = parseEnteroPositivo(values.get(9), "Zona comercial", contadorLineas, 10);
                     EstadoPedido estado = parseEstadoPedido(values.get(10), contadorLineas, 11);
 
                     LineaPedido linea = new LineaPedido(
@@ -238,15 +239,15 @@ public class CsvImporter {
         return parsedValue;
     }
 
-    private int parseEnteroNoNegativo(String value, String fieldName, int row, int column) {
-        int parsedValue;
+    private BigDecimal parseDecimalPositivo(String value, String fieldName, int row, int column) {
+        BigDecimal parsedValue;
         try {
-            parsedValue = Integer.parseInt(value.trim());
+            parsedValue = new BigDecimal(normalizarDecimal(value));
         } catch (NumberFormatException e) {
-            throw new IllegalArgumentException(formatearError(row, column, fieldName + " no válido (debe ser un número entero): " + value));
+            throw new IllegalArgumentException(formatearError(row, column, fieldName + " no válido (debe ser decimal): " + value));
         }
-        if (parsedValue < 0) {
-            throw new IllegalArgumentException(formatearError(row, column, fieldName + " no válido (no puede ser negativo): " + value));
+        if (parsedValue.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException(formatearError(row, column, fieldName + " no válido (debe ser positivo): " + value));
         }
         return parsedValue;
     }
@@ -291,7 +292,7 @@ public class CsvImporter {
             throw new IllegalArgumentException(formatearError(row, column, fieldName + " no reconocible. Formatos admitidos: dd/MM/yyyy, yyyy-MM-dd"));
         }
 
-        return parsedDate.format(FECHA_NORMALIZADA);
+        return parsedDate.format(FECHA_ISO);
     }
 
     private LocalDate tryParseDate(String value) {
@@ -308,7 +309,7 @@ public class CsvImporter {
         }
 
         try {
-            return LocalDate.parse(value, DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT));
+            return LocalDate.parse(value, FECHA_DD_MM_YYYY_DASH);
         } catch (DateTimeParseException ignored) {
             return null;
         }
@@ -353,7 +354,7 @@ public class CsvImporter {
 
     private EstadoPedido parseEstadoPedido(String value, int row, int column) {
         try {
-            return EstadoPedido.fromString(value.trim().toUpperCase());
+            return EstadoPedido.fromString(value.trim());
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(formatearError(row, column, "Estado de pedido no válido: " + value));
         }

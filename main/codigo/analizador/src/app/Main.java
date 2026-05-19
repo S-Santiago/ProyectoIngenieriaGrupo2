@@ -14,7 +14,11 @@ public class Main {
             String opcion = scanner.nextLine().trim();
 
             switch (opcion) {
-                case "1" -> Application.launch(AppFX.class, args);
+                case "1" -> {
+                    // Forzar renderizado por software para evitar uso de Marlin/Unsafe en Mac
+                    System.setProperty("prism.order", "sw");
+                    Application.launch(AppFX.class, args);
+                }
                 case "2" -> {
                     new CliEngine(scanner).run();
                     return;

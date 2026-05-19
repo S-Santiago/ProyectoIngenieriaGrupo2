@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane prefWidth="1280.0" prefHeight="800.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="controller.NavigationController">
+   <top>
+      <VBox style="-fx-background-color: #2d3748; -fx-border-color: #1a202c; -fx-border-width: 0 0 2 0;">
+         <children>
+            <Label text="📊 Analizador de Rentabilidad - Sistema de KPIs Financieros" style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: white; -fx-padding: 12px 16px;" />
+            <HBox spacing="12.0" style="-fx-padding: 10px 16px; -fx-background-color: #374151;">
+               <children>
+                  <Button fx:id="btnExploradorPedidos" text="🔍 Explorador de Pedidos" onAction="#navegarExploradorPedidos" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
+                  <Button fx:id="btnImportacionKpis" text="📥 Importación y KPIs" onAction="#navegarImportacionKpis" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
+                  <Button fx:id="btnRentabilidad" text="💰 Panel de Rentabilidad" onAction="#navegarRentabilidad" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
+                  <Button fx:id="btnSalir" text="🚪 Salir" onAction="#cerrarAplicacion" style="-fx-font-size: 12px; -fx-padding: 8px 16px; -fx-text-fill: #ef4444;" />
+               </children>
+            </HBox>
+         </children>
+      </VBox>
+   </top>
+   <center>
+      <VBox fx:id="centerContent" style="-fx-background-color: #f7f9fc;" />
+   </center>
+</BorderPane>

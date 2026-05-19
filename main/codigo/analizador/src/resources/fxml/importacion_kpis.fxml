@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -9,26 +8,23 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane prefWidth="1280.0" prefHeight="760.0" fitToWidth="true" fitToHeight="true" pannable="true" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" style="-fx-background: linear-gradient(to bottom right, #f7f9fc, #eef3f9); -fx-background-color: transparent;">
+<ScrollPane prefWidth="1280.0" prefHeight="760.0" fitToWidth="true" fitToHeight="true" pannable="true" styleClass="scroll-container" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
    <content>
-      <VBox spacing="14.0" style="-fx-background-color: linear-gradient(to bottom right, #f7f9fc, #eef3f9);">
-         <padding>
-            <Insets top="16.0" right="16.0" bottom="16.0" left="16.0" />
-         </padding>
+      <VBox spacing="20.0" styleClass="view-container">
          <children>
-            <Label text="Importación de KPIs y Análisis Global" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1f2937;" />
+            <Label text="Importación de KPIs y Análisis Global" styleClass="view-title" />
 
-            <HBox spacing="10.0">
+            <HBox spacing="12.0">
                <children>
-                  <Button text="Importar CSV" onAction="#importarCSV" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
-                  <Button text="Refrescar" onAction="#refrescarKpis" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
-                  <Button text="Exportar Excel" onAction="#exportarKpisExcel" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
+                  <Button text="Importar CSV" onAction="#importarCSV" styleClass="action-button" />
+                  <Button text="Refrescar" onAction="#refrescarKpis" styleClass="action-button" />
+                  <Button text="Exportar Excel" onAction="#exportarKpisExcel" styleClass="action-button" />
                </children>
             </HBox>
 
-            <Label text="KPIs Globales" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #374151;" />
+            <Label text="KPIs Globales" styleClass="section-title" />
 
-            <TableView fx:id="kpisGlobalesTableView" VBox.vgrow="ALWAYS" prefHeight="200.0">
+            <TableView fx:id="kpisGlobalesTableView" VBox.vgrow="ALWAYS" prefHeight="200.0" styleClass="data-table">
                <columns>
                   <TableColumn fx:id="metricaColumn" prefWidth="250.0" text="Métrica" />
                   <TableColumn fx:id="valorColumn" prefWidth="200.0" text="Valor" />
@@ -37,9 +33,9 @@
                </columns>
             </TableView>
 
-            <Label text="KPIs por Categoría (Facturación)" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #374151;" />
+            <Label text="KPIs por Categoría (Facturación)" styleClass="section-title" />
 
-            <TableView fx:id="kpisPorCategoriaTableView" VBox.vgrow="ALWAYS" prefHeight="250.0">
+            <TableView fx:id="kpisPorCategoriaTableView" VBox.vgrow="ALWAYS" prefHeight="250.0" styleClass="data-table">
                <columns>
                   <TableColumn fx:id="categoriaColumn" prefWidth="250.0" text="Categoría" />
                   <TableColumn fx:id="facturacionColumn" prefWidth="200.0" text="Facturación Total" />

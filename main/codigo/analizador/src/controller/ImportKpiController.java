@@ -5,15 +5,18 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import model.LineaPedido;
@@ -28,30 +31,46 @@ public class ImportKpiController {
     private final ExcelExporter excelExporter = new ExcelExporter();
 
     @FXML
-    private TableView<Map.Entry<String, BigDecimal>> kpisGlobalesTableView;
+    private TableView<KpiGlobalRow> kpisGlobalesTableView;
     @FXML
-    private TableColumn<Map.Entry<String, BigDecimal>, String> metricaColumn;
+    private TableColumn<KpiGlobalRow, String> metricaColumn;
     @FXML
-    private TableColumn<Map.Entry<String, BigDecimal>, String> valorColumn;
+    private TableColumn<KpiGlobalRow, String> valorColumn;
     @FXML
-    private TableColumn<Map.Entry<String, BigDecimal>, String> unidadColumn;
+    private TableColumn<KpiGlobalRow, String> unidadColumn;
     @FXML
-    private TableColumn<Map.Entry<String, BigDecimal>, String> observacionesColumn;
+    private TableColumn<KpiGlobalRow, String> observacionesColumn;
 
     @FXML
-    private TableView<?> kpisPorCategoriaTableView;
+    private TableView<KpiCategoriaRow> kpisPorCategoriaTableView;
     @FXML
-    private TableColumn<?, String> categoriaColumn;
+    private TableColumn<KpiCategoriaRow, String> categoriaColumn;
     @FXML
-    private TableColumn<?, BigDecimal> facturacionColumn;
+    private TableColumn<KpiCategoriaRow, BigDecimal> facturacionColumn;
     @FXML
-    private TableColumn<?, BigDecimal> margenColumn;
+    private TableColumn<KpiCategoriaRow, BigDecimal> margenColumn;
     @FXML
-    private TableColumn<?, BigDecimal> margenPorcentajeColumn;
+    private TableColumn<KpiCategoriaRow, BigDecimal> margenPorcentajeColumn;
 
     @FXML
     public void initialize() {
+        configurarTablas();
         refrescarKpis();
+    }
+
+    private void configurarTablas() {
+        metricaColumn.setCellValueFactory(new PropertyValueFactory<>("metrica"));
+        valorColumn.setCellValueFactory(new PropertyValueFactory<>("valor"));
+        unidadColumn.setCellValueFactory(new PropertyValueFactory<>("unidad"));
+        observacionesColumn.setCellValueFactory(new PropertyValueFactory<>("observaciones"));
+
+        categoriaColumn.setCellValueFactory(new PropertyValueFactory<>("categoria"));
+        facturacionColumn.setCellValueFactory(new PropertyValueFactory<>("facturacion"));
+        margenColumn.setCellValueFactory(new PropertyValueFactory<>("margen"));
+        margenPorcentajeColumn.setCellValueFactory(new PropertyValueFactory<>("margenPorcentaje"));
+
+        kpisGlobalesTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        kpisPorCategoriaTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
     }
 
     @FXML
@@ -133,27 +152,27 @@ public class ImportKpiController {
 
     private void poblarKpisGlobales() {
         try {
-            calculadora.calcularMargenBrutoTotal();
-            
-            ObservableList<Map.Entry<String, BigDecimal>> kpis = FXCollections.observableArrayList();
-            
-            // Calcular KPIs globales
+            List<KpiGlobalRow> filas = new ArrayList<>();
             List<LineaPedido> pedidos = exploradorController.getPedidos();
+            int totalPedidos = pedidos == null ? 0 : pedidos.size();
+            BigDecimal facturacionTotal = BigDecimal.ZERO;
             if (pedidos != null && !pedidos.isEmpty()) {
-                BigDecimal facturacionTotal = pedidos.stream()
+                facturacionTotal = pedidos.stream()
                     .map(p -> multiplicarMonetario(p.getPrecioVentaUnitario(), p.getUnidades()))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-                
-                BigDecimal margenTotal = calculadora.calcularMargenBrutoTotal();
-                
-                BigDecimal margenPorcentaje = facturacionTotal.compareTo(BigDecimal.ZERO) > 0
-                    ? margenTotal.multiply(BigDecimal.valueOf(100)).divide(facturacionTotal, 2, java.math.RoundingMode.HALF_UP)
-                    : BigDecimal.ZERO;
-                
-                // Agregar filas (simuladas para ahora)
-                // Nota: Esto es un placeholder, la tabla real necesitaría un modelo de datos específico
             }
-            
+            BigDecimal margenTotal = calculadora.calcularMargenBrutoTotal();
+            BigDecimal margenPorcentaje = facturacionTotal.compareTo(BigDecimal.ZERO) > 0
+                ? margenTotal.multiply(BigDecimal.valueOf(100)).divide(facturacionTotal, 2, java.math.RoundingMode.HALF_UP)
+                : BigDecimal.ZERO;
+
+            filas.add(new KpiGlobalRow("Total de pedidos", String.valueOf(totalPedidos), "pedidos", "Número de líneas cargadas"));
+            filas.add(new KpiGlobalRow("Facturación total", facturacionTotal.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(), "€", "Suma de ventas unitarias por unidades"));
+            filas.add(new KpiGlobalRow("Margen bruto total", margenTotal.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(), "€", "Ingresos menos costes"));
+            filas.add(new KpiGlobalRow("Margen medio", margenPorcentaje.setScale(2, java.math.RoundingMode.HALF_UP).toPlainString(), "%", "Margen sobre facturación total"));
+            filas.add(new KpiGlobalRow("Estado", pedidos == null || pedidos.isEmpty() ? "Sin datos" : "Datos disponibles", "", "Carga actual de pedidos"));
+
+            kpisGlobalesTableView.setItems(FXCollections.observableArrayList(filas));
         } catch (Exception e) {
             System.err.println("Error al poblar KPIs globales: " + e.getMessage());
         }
@@ -163,9 +182,26 @@ public class ImportKpiController {
         try {
             Map<String, BigDecimal> rankingFacturacion = calculadora.generarRankCategoriasPorFacturacion();
             Map<String, BigDecimal> rankingMargen = calculadora.generarRankCategorias();
-            
-            // Aquí se poblaría la tabla con los datos del ranking
-            // Placeholder para ahora
+            Set<String> categorias = new LinkedHashSet<>();
+            categorias.addAll(rankingFacturacion.keySet());
+            categorias.addAll(rankingMargen.keySet());
+
+            List<KpiCategoriaRow> filas = new ArrayList<>();
+            for (String categoriaActual : categorias) {
+                BigDecimal facturacion = rankingFacturacion.getOrDefault(categoriaActual, BigDecimal.ZERO);
+                BigDecimal margen = rankingMargen.getOrDefault(categoriaActual, BigDecimal.ZERO);
+                BigDecimal margenPorcentaje = facturacion.compareTo(BigDecimal.ZERO) > 0
+                    ? margen.multiply(BigDecimal.valueOf(100)).divide(facturacion, 2, java.math.RoundingMode.HALF_UP)
+                    : BigDecimal.ZERO;
+                filas.add(new KpiCategoriaRow(
+                    categoriaActual,
+                    facturacion.setScale(2, java.math.RoundingMode.HALF_UP),
+                    margen.setScale(2, java.math.RoundingMode.HALF_UP),
+                    margenPorcentaje.setScale(2, java.math.RoundingMode.HALF_UP)
+                ));
+            }
+
+            kpisPorCategoriaTableView.setItems(FXCollections.observableArrayList(filas));
             
         } catch (Exception e) {
             System.err.println("Error al poblar KPIs por categoría: " + e.getMessage());
@@ -227,5 +263,43 @@ public class ImportKpiController {
         BigDecimal valor = valorUnitario == null ? BigDecimal.ZERO : valorUnitario;
         BigDecimal cantidad = unidades == null ? BigDecimal.ZERO : BigDecimal.valueOf(unidades.longValue());
         return valor.multiply(cantidad);
+    }
+
+    public static final class KpiGlobalRow {
+        private final String metrica;
+        private final String valor;
+        private final String unidad;
+        private final String observaciones;
+
+        public KpiGlobalRow(String metrica, String valor, String unidad, String observaciones) {
+            this.metrica = metrica;
+            this.valor = valor;
+            this.unidad = unidad;
+            this.observaciones = observaciones;
+        }
+
+        public String getMetrica() { return metrica; }
+        public String getValor() { return valor; }
+        public String getUnidad() { return unidad; }
+        public String getObservaciones() { return observaciones; }
+    }
+
+    public static final class KpiCategoriaRow {
+        private final String categoria;
+        private final BigDecimal facturacion;
+        private final BigDecimal margen;
+        private final BigDecimal margenPorcentaje;
+
+        public KpiCategoriaRow(String categoria, BigDecimal facturacion, BigDecimal margen, BigDecimal margenPorcentaje) {
+            this.categoria = categoria;
+            this.facturacion = facturacion;
+            this.margen = margen;
+            this.margenPorcentaje = margenPorcentaje;
+        }
+
+        public String getCategoria() { return categoria; }
+        public BigDecimal getFacturacion() { return facturacion; }
+        public BigDecimal getMargen() { return margen; }
+        public BigDecimal getMargenPorcentaje() { return margenPorcentaje; }
     }
 }

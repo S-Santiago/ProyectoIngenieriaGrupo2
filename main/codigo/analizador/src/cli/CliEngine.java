@@ -15,6 +15,7 @@ import controller.CalculadoraFinanciera;
 import controller.ExploradorController;
 import controller.ImportKpiController;
 import model.LineaPedido;
+import persistence.CsvImporter;
 import persistence.ExcelExporter;
 
 public class CliEngine {
@@ -27,6 +28,7 @@ public class CliEngine {
     private final ImportKpiController importKpiController = new ImportKpiController();
     private final CalculadoraFinanciera calculadoraFinanciera = new CalculadoraFinanciera();
     private final ExcelExporter excelExporter = new ExcelExporter();
+    private final CsvImporter csvImporter = new CsvImporter();
     private List<LineaPedido> ultimoResultado = new ArrayList<>();
 
     public CliEngine(Scanner scanner) {
@@ -81,9 +83,17 @@ public class CliEngine {
             return;
         }
 
-        importKpiController.importar(rutaFinal);
+        List<LineaPedido> lineasImportadas = csvImporter.importCSVLineaPedidos(rutaFinal);
+        exploradorController.setPedidos(lineasImportadas);
         ultimoResultado = exploradorController.getPedidos();
+
         System.out.println("Pedidos cargados correctamente: " + ultimoResultado.size());
+        if (!exploradorController.getValidationErrors().isEmpty()) {
+            System.out.println("Se detectaron avisos al validar los pedidos importados:");
+            for (String aviso : exploradorController.getValidationErrors()) {
+                System.out.println("- " + aviso);
+            }
+        }
     }
 
     private void explorarYFiltrarPedidos() {

@@ -2,48 +2,52 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox prefWidth="1280.0" prefHeight="760.0" spacing="14.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" style="-fx-background-color: linear-gradient(to bottom right, #f7f9fc, #eef3f9);">
-   <padding>
-      <Insets top="16.0" right="16.0" bottom="16.0" left="16.0" />
-   </padding>
-   <children>
-      <Label text="Importación de KPIs y Análisis Global" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1f2937;" />
-      
-      <HBox spacing="10.0">
+<ScrollPane prefWidth="1280.0" prefHeight="760.0" fitToWidth="true" fitToHeight="true" pannable="true" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" style="-fx-background: linear-gradient(to bottom right, #f7f9fc, #eef3f9); -fx-background-color: transparent;">
+   <content>
+      <VBox spacing="14.0" style="-fx-background-color: linear-gradient(to bottom right, #f7f9fc, #eef3f9);">
+         <padding>
+            <Insets top="16.0" right="16.0" bottom="16.0" left="16.0" />
+         </padding>
          <children>
-            <Button text="📥 Importar CSV" onAction="#importarCSV" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
-            <Button text="🔄 Refrescar" onAction="#refrescarKpis" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
-            <Button text="💾 Exportar Excel" onAction="#exportarKpisExcel" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
+            <Label text="Importación de KPIs y Análisis Global" style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #1f2937;" />
+
+            <HBox spacing="10.0">
+               <children>
+                  <Button text="Importar CSV" onAction="#importarCSV" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
+                  <Button text="Refrescar" onAction="#refrescarKpis" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
+                  <Button text="Exportar Excel" onAction="#exportarKpisExcel" style="-fx-font-size: 12px; -fx-padding: 8px 16px;" />
+               </children>
+            </HBox>
+
+            <Label text="KPIs Globales" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #374151;" />
+
+            <TableView fx:id="kpisGlobalesTableView" VBox.vgrow="ALWAYS" prefHeight="200.0">
+               <columns>
+                  <TableColumn fx:id="metricaColumn" prefWidth="250.0" text="Métrica" />
+                  <TableColumn fx:id="valorColumn" prefWidth="200.0" text="Valor" />
+                  <TableColumn fx:id="unidadColumn" prefWidth="150.0" text="Unidad" />
+                  <TableColumn fx:id="observacionesColumn" prefWidth="280.0" text="Observaciones" />
+               </columns>
+            </TableView>
+
+            <Label text="KPIs por Categoría (Facturación)" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #374151;" />
+
+            <TableView fx:id="kpisPorCategoriaTableView" VBox.vgrow="ALWAYS" prefHeight="250.0">
+               <columns>
+                  <TableColumn fx:id="categoriaColumn" prefWidth="250.0" text="Categoría" />
+                  <TableColumn fx:id="facturacionColumn" prefWidth="200.0" text="Facturación Total" />
+                  <TableColumn fx:id="margenColumn" prefWidth="200.0" text="Margen Total" />
+                  <TableColumn fx:id="margenPorcentajeColumn" prefWidth="150.0" text="Margen %" />
+               </columns>
+            </TableView>
          </children>
-      </HBox>
-
-      <Label text="KPIs Globales" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #374151;" />
-      
-      <TableView fx:id="kpisGlobalesTableView" prefHeight="200.0">
-         <columns>
-            <TableColumn fx:id="metricaColumn" prefWidth="250.0" text="Métrica" />
-            <TableColumn fx:id="valorColumn" prefWidth="200.0" text="Valor" />
-            <TableColumn fx:id="unidadColumn" prefWidth="150.0" text="Unidad" />
-            <TableColumn fx:id="observacionesColumn" prefWidth="280.0" text="Observaciones" />
-         </columns>
-      </TableView>
-
-      <Label text="KPIs por Categoría (Facturación)" style="-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #374151; -fx-margin-top: 10;" />
-      
-      <TableView fx:id="kpisPorCategoriaTableView" prefHeight="250.0">
-         <columns>
-            <TableColumn fx:id="categoriaColumn" prefWidth="250.0" text="Categoría" />
-            <TableColumn fx:id="facturacionColumn" prefWidth="200.0" text="Facturación Total" />
-            <TableColumn fx:id="margenColumn" prefWidth="200.0" text="Margen Total" />
-            <TableColumn fx:id="margenPorcentajeColumn" prefWidth="150.0" text="% Margen" />
-         </columns>
-      </TableView>
-   </children>
-</VBox>
+      </VBox>
+   </content>
+</ScrollPane>

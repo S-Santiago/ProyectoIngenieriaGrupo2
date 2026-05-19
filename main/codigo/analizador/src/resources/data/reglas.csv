@@ -1,0 +1,6 @@
+id,categoriaProductoAfectada,margenMinimoPortcentaje,activa,descripcion
+1,Electrónica,35.0,true,"Margen mínimo para productos electrónicos de alto valor"
+2,Accesorios,60.0,true,"Margen mínimo para accesorios y periféricos"
+3,Audio,68.0,true,"Margen mínimo para productos de audio"
+4,Almacenamiento,65.0,true,"Margen mínimo para almacenamiento y memoria"
+5,Software,50.0,false,"Margen mínimo para software - actualmente desactivada"

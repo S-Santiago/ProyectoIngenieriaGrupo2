@@ -1,2 +1,0 @@
-INDEX VERSION 1.134+/Users/santiagofernandezsanchez/Library/CloudStorage/OneDrive-UniversidadEuropeadeMadrid/Cursos/1º - 2025-2026/Proyecto de ingeniería/ProyectoIngenieriaGrupo2/main/codigo/analizador/.metadata/.plugins/org.eclipse.jdt.core
-1865797976.index

@@ -144,7 +144,7 @@
 }
 
 /* Texto del elemento seleccionado en el ComboBox */
-.dark-input.combo-box .list-cell {
+.combo-box .list-cell {
     -fx-text-fill: #F3F4F6; 
 }
 
@@ -335,4 +335,103 @@
 .scroll-bar:vertical .decrement-arrow {
     -fx-shape: " "; /* Elimina el icono de la flecha */
     -fx-padding: 0;
+}
+
+/* ==================================================
+   DATEPICKER DARK THEME
+   ================================================== */
+
+/* Campo principal */
+.date-picker {
+    -fx-background-color: #2d2d2d;
+    -fx-border-color: #4b5563;
+    -fx-border-radius: 4px;
+    -fx-background-radius: 4px;
+}
+
+/* Editor interno del DatePicker */
+.date-picker .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: #F3F4F6;
+    -fx-prompt-text-fill: #9ca3af;
+}
+
+/* Botón del calendario */
+.date-picker > .arrow-button {
+    -fx-background-color: #3f3f46;
+    -fx-background-radius: 0 4px 4px 0;
+}
+
+.date-picker > .arrow-button:hover {
+    -fx-background-color: #4b5563;
+}
+
+/* Icono de flecha */
+.date-picker > .arrow-button > .arrow {
+    -fx-background-color: #F3F4F6;
+}
+
+/* Popup del calendario */
+.date-picker-popup {
+    -fx-background-color: #1e1e1e;
+    -fx-border-color: #374151;
+}
+
+/* Fondo general del calendario */
+.date-picker-popup > .month-year-pane {
+    -fx-background-color: #111827;
+}
+
+/* Texto mes/año */
+.date-picker-popup > .month-year-pane .label {
+    -fx-text-fill: #F3F4F6;
+}
+
+/* Botones navegación mes */
+.date-picker-popup .spinner .button {
+    -fx-background-color: #3f3f46;
+}
+
+.date-picker-popup .spinner .button:hover {
+    -fx-background-color: #4b5563;
+}
+
+/* Días del calendario */
+.date-picker-popup .calendar-grid {
+    -fx-background-color: #1e1e1e;
+}
+
+/* Nombres de días */
+.date-picker-popup .day-name-cell {
+    -fx-text-fill: #9CA3AF;
+}
+
+/* Celdas de días */
+.date-picker-popup .day-cell {
+    -fx-background-color: #1e1e1e;
+    -fx-text-fill: #F3F4F6;
+    -fx-border-color: transparent;
+}
+
+/* Hover días */
+.date-picker-popup .day-cell:hover {
+    -fx-background-color: #374151;
+}
+
+/* Día seleccionado */
+.date-picker-popup .day-cell:selected {
+    -fx-background-color: #FF3228;
+    -fx-text-fill: white;
+}
+
+/* Día actual */
+.date-picker-popup .today {
+    -fx-border-color: #FF3228;
+    -fx-border-width: 1px;
+}
+
+/* Días de otros meses */
+.date-picker-popup .previous-month,
+.date-picker-popup .next-month {
+    -fx-text-fill: #6b7280;
 }

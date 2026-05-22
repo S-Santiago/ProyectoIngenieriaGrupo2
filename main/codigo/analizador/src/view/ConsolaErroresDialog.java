@@ -1,14 +1,25 @@
 package view;
 
+import java.util.List;
+
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 public class ConsolaErroresDialog {
 
     private static void mostrarDialogo(AlertType tipo, String titulo, String mensaje) {
         Runnable accion = () -> {
             Alert alert = new Alert(tipo);
+            Window owner = obtenerOwnerActivo();
+            if (owner != null) {
+                alert.initOwner(owner);
+            }
+            alert.initModality(Modality.WINDOW_MODAL);
+            alert.setResizable(true);
             alert.setTitle(titulo);
             alert.setHeaderText(titulo);
             alert.setContentText(mensaje);
@@ -20,6 +31,17 @@ public class ConsolaErroresDialog {
         } else {
             Platform.runLater(accion);
         }
+    }
+
+    private static Window obtenerOwnerActivo() {
+        List<Window> ventanas = Window.getWindows();
+        for (int i = ventanas.size() - 1; i >= 0; i--) {
+            Window ventana = ventanas.get(i);
+            if (ventana instanceof Stage stage && stage.isShowing()) {
+                return stage;
+            }
+        }
+        return null;
     }
 
     /**

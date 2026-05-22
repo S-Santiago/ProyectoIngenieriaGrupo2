@@ -51,34 +51,36 @@ public class CsvImporter {
     public ImportResult<LineaPedido> importCSVLineaPedidosConAvisos(String filePath) {
         List<LineaPedido> lineasPedido = new ArrayList<>();
         List<String> avisos = new ArrayList<>();
-        int contadorLineas = 0;
+        int contadorLineas = 0; // líneas efectivamente procesadas (sin cabeceras/vacías)
+        int fileLine = 0; // número de línea en el fichero (incluye cabecera)
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = br.readLine()) != null) {
-                contadorLineas++;
+                fileLine++;
                 if (line.trim().isEmpty()) {
                     continue;
                 }
                 if (esCabeceraLineaPedido(line)) {
                     continue;
                 }
+                contadorLineas++;
                 try {
                     List<String> values = parseCsvLine(line);
                     if (values.size() != 11) {
                         throw new IllegalArgumentException("Número de columnas inválido. Se esperaban 11 y se recibieron " + values.size());
                     }
 
-                    int idLinea = parseEnteroPositivo(values.get(0), "ID de línea", contadorLineas, 1);
-                    int idPedido = parseEnteroPositivo(values.get(1), "ID de pedido", contadorLineas, 2);
-                    String referenciaProducto = valorNoVacio(values.get(2), "Referencia de producto", contadorLineas, 3);
-                    String descripcionProducto = valorNoVacio(values.get(3), "Descripción de producto", contadorLineas, 4);
-                    String categoria = valorNoVacio(values.get(4), "Categoría", contadorLineas, 5);
-                    BigDecimal costeUnitario = parseDecimalPositivo(values.get(5), "Coste unitario", contadorLineas, 6);
-                    BigDecimal precioVentaUnitario = parseDecimalPositivo(values.get(6), "Precio de venta unitario", contadorLineas, 7);
-                    int unidades = parseEnteroPositivo(values.get(7), "Número de unidades", contadorLineas, 8);
-                    String fechaPedido = parseFechaFlexible(values.get(8), "Fecha de pedido", contadorLineas, 9);
-                    int zonaComercial = parseEnteroPositivo(values.get(9), "Zona comercial", contadorLineas, 10);
-                    EstadoPedido estado = parseEstadoPedido(values.get(10), contadorLineas, 11);
+                    int idLinea = parseEnteroPositivo(values.get(0), "ID de línea", fileLine, 1);
+                    int idPedido = parseEnteroPositivo(values.get(1), "ID de pedido", fileLine, 2);
+                    String referenciaProducto = valorNoVacio(values.get(2), "Referencia de producto", fileLine, 3);
+                    String descripcionProducto = valorNoVacio(values.get(3), "Descripción de producto", fileLine, 4);
+                    String categoria = valorNoVacio(values.get(4), "Categoría", fileLine, 5);
+                    BigDecimal costeUnitario = parseDecimalPositivo(values.get(5), "Coste unitario", fileLine, 6);
+                    BigDecimal precioVentaUnitario = parseDecimalPositivo(values.get(6), "Precio de venta unitario", fileLine, 7);
+                    int unidades = parseEnteroPositivo(values.get(7), "Número de unidades", fileLine, 8);
+                    String fechaPedido = parseFechaFlexible(values.get(8), "Fecha de pedido", fileLine, 9);
+                    int zonaComercial = parseEnteroPositivo(values.get(9), "Zona comercial", fileLine, 10);
+                    EstadoPedido estado = parseEstadoPedido(values.get(10), fileLine, 11);
 
                     LineaPedido linea = new LineaPedido(
                         idLinea,
@@ -95,8 +97,8 @@ public class CsvImporter {
                     );
                     lineasPedido.add(linea);
                 } catch (IllegalArgumentException e) {
-                    avisos.add("Fila " + contadorLineas + ": " + e.getMessage());
-                    System.out.println("Aviso: línea inválida en fila " + contadorLineas + ": " + e.getMessage());
+                    avisos.add("Fila " + fileLine + ": " + e.getMessage());
+                    System.out.println("Aviso: línea inválida en fila " + fileLine + ": " + e.getMessage());
                 }
             }
         } 
@@ -113,16 +115,18 @@ public class CsvImporter {
     public List<ZonaComercial> importCSVZonasComerciales(String filePath) {
         List<ZonaComercial> zonas = new ArrayList<>();
         int contadorLineas = 0;
+        int fileLine = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = br.readLine()) != null) {
-                contadorLineas++;
+                fileLine++;
                 if (line.trim().isEmpty()) {
                     continue;
                 }
                 if (esCabeceraZonaComercial(line)) {
                     continue;
                 }
+                contadorLineas++;
                 
                 try {
                     List<String> values = parseCsvLine(line);
@@ -139,7 +143,7 @@ public class CsvImporter {
                     ZonaComercial zona = new ZonaComercial(id, nombre, pais, responsableComercial, objetivoFacturacionAnual.doubleValue());
                     zonas.add(zona);
                 } catch (IllegalArgumentException e) {
-                    System.out.println("Aviso: línea inválida en fila " + contadorLineas + ": " + e.getMessage());
+                    System.out.println("Aviso: línea inválida en fila " + fileLine + ": " + e.getMessage());
                 }
             }
         } catch (IOException e) {
@@ -153,16 +157,18 @@ public class CsvImporter {
     public List<ReglaMargen> importCSVReglasMargen(String filePath) {
         List<ReglaMargen> reglas = new ArrayList<>();
         int contadorLineas = 0;
+        int fileLine = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = br.readLine()) != null) {
-                contadorLineas++;
+                fileLine++;
                 if (line.trim().isEmpty()) {
                     continue;
                 }
                 if (esCabeceraReglaMargen(line)) {
                     continue;
                 }
+                contadorLineas++;
                 
                 try {
                     List<String> values = parseCsvLine(line);
@@ -179,7 +185,7 @@ public class CsvImporter {
                     ReglaMargen regla = new ReglaMargen(id, categoriaProductoAfectada, margenMinimoPortcentaje.doubleValue(), activa, descripcion);
                     reglas.add(regla);
                 } catch (IllegalArgumentException e) {
-                    System.out.println("Aviso: línea inválida en fila " + contadorLineas + ": " + e.getMessage());
+                    System.out.println("Aviso: línea inválida en fila " + fileLine + ": " + e.getMessage());
                 }
             }
         } catch (IOException e) {

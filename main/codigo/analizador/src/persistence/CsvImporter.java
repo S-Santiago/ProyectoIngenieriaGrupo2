@@ -22,9 +22,35 @@ public class CsvImporter {
     private static final DateTimeFormatter FECHA_DD_MM_YYYY_DASH = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter FECHA_ISO = DateTimeFormatter.ISO_LOCAL_DATE;
 
+    public static final class ImportResult<T> {
+        private final List<T> elementos;
+        private final List<String> avisos;
+
+        public ImportResult(List<T> elementos, List<String> avisos) {
+            this.elementos = List.copyOf(elementos);
+            this.avisos = List.copyOf(avisos);
+        }
+
+        public List<T> getElementos() {
+            return elementos;
+        }
+
+        public List<String> getAvisos() {
+            return avisos;
+        }
+
+        public boolean tieneAvisos() {
+            return !avisos.isEmpty();
+        }
+    }
+
     public List<LineaPedido> importCSVLineaPedidos(String filePath) {
-        
+        return importCSVLineaPedidosConAvisos(filePath).getElementos();
+    }
+
+    public ImportResult<LineaPedido> importCSVLineaPedidosConAvisos(String filePath) {
         List<LineaPedido> lineasPedido = new ArrayList<>();
+        List<String> avisos = new ArrayList<>();
         int contadorLineas = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             String line;
@@ -69,6 +95,7 @@ public class CsvImporter {
                     );
                     lineasPedido.add(linea);
                 } catch (IllegalArgumentException e) {
+                    avisos.add("Fila " + contadorLineas + ": " + e.getMessage());
                     System.out.println("Aviso: línea inválida en fila " + contadorLineas + ": " + e.getMessage());
                 }
             }
@@ -80,7 +107,7 @@ public class CsvImporter {
             System.out.println("Número total de líneas procesadas: " + contadorLineas);
             System.out.println("Número total de líneas importadas: " + lineasPedido.size());
         }
-        return lineasPedido;
+        return new ImportResult<>(lineasPedido, avisos);
     }
 
     public List<ZonaComercial> importCSVZonasComerciales(String filePath) {

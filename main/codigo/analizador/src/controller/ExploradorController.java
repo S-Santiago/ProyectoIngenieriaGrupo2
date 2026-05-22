@@ -26,6 +26,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import model.LineaPedido;
 import persistence.CsvImporter;
+import view.ConsolaErroresDialog;
 
 /**
  * Controlador para el explorador de pedidos.
@@ -101,19 +102,29 @@ public class ExploradorController {
         // Cargar en segundo plano para no bloquear el hilo de la interfaz
         actualizarEstado("Cargando pedidos desde CSV...");
 
-        Task<List<LineaPedido>> tareaCarga = new Task<>() {
+        Task<CsvImporter.ImportResult<LineaPedido>> tareaCarga = new Task<>() {
             @Override
-            protected List<LineaPedido> call() throws Exception {
+            protected CsvImporter.ImportResult<LineaPedido> call() throws Exception {
                 var recurso = getClass().getResource("/data/lineas_pedidos.csv");
                 if (recurso == null) {
                     throw new IOException("No se encontró el CSV de pedidos en /data/lineas_pedidos.csv.");
                 }
-                return csvImporter.importCSVLineaPedidos(Path.of(recurso.toURI()).toString());
+                return csvImporter.importCSVLineaPedidosConAvisos(Path.of(recurso.toURI()).toString());
             }
         };
 
         tareaCarga.setOnSucceeded(evt -> {
-            List<LineaPedido> cargados = tareaCarga.getValue();
+            CsvImporter.ImportResult<LineaPedido> resultadoImportacion = tareaCarga.getValue();
+            List<LineaPedido> cargados = resultadoImportacion == null ? List.of() : resultadoImportacion.getElementos();
+
+            if (resultadoImportacion != null && resultadoImportacion.tieneAvisos()) {
+                ConsolaErroresDialog.mostrarAdvertencia(
+                    "Líneas del CSV no importadas",
+                    "Se cargaron " + cargados.size() + " líneas válidas, pero estas filas no se pudieron importar:\n\n"
+                        + String.join("\n", resultadoImportacion.getAvisos())
+                );
+            }
+
             if (cargados == null || cargados.isEmpty()) {
                 actualizarEstado("El CSV no devolvió pedidos válidos.");
             } else {

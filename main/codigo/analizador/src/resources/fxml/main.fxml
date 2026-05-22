@@ -12,13 +12,13 @@
    <top>
       <VBox styleClass="header-container">
          <children>
-            <Label text="📊 Analizador de Rentabilidad - Sistema de KPIs Financieros" styleClass="title-label" />
+            <Label text="📊 Analizador de rentabilidad y gestión comercial" styleClass="title-label" />
             
             <HBox styleClass="nav-bar">
                <children>
-                  <Button fx:id="btnExploradorPedidos" text="🔍 Explorador de Pedidos" onAction="#navegarExploradorPedidos" styleClass="nav-button" />
-                  <Button fx:id="btnImportacionKpis" text="📥 Importación y KPIs" onAction="#navegarImportacionKpis" styleClass="nav-button" />
-                  <Button fx:id="btnRentabilidad" text="💰 Panel de Rentabilidad" onAction="#navegarRentabilidad" styleClass="nav-button" />
+                  <Button fx:id="btnExploradorPedidos" text="🔍 Explorador de pedidos" onAction="#navegarExploradorPedidos" styleClass="nav-button" />
+                  <Button fx:id="btnImportacionKpis" text="📥 Importación y kpis" onAction="#navegarImportacionKpis" styleClass="nav-button" />
+                  <Button fx:id="btnRentabilidad" text="💰 Gestión comercial" onAction="#navegarRentabilidad" styleClass="nav-button" />
                   
                   <!-- Este Region actúa como un muelle que empuja el botón de Salir a la derecha -->
                   <Region HBox.hgrow="ALWAYS" />

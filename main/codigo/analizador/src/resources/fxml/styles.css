@@ -1,134 +1,153 @@
 .root {
     -fx-font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, Arial, sans-serif;
+    -fx-base: #ffffff;
 }
 
 /* ==================================================
    PANEL PRINCIPAL DE NAVEGACIÓN (HEADER)
    ================================================== */
 .header-container {
-    -fx-background-color: #2d3748; /* Un gris un poco más claro que el fondo general */
-    -fx-border-color: #1a202c;
+    -fx-background-color: linear-gradient(to bottom, #ffffff, #f8fafc);
+    -fx-border-color: #dbe3ee;
     -fx-border-width: 0 0 1px 0;
-    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 10, 0, 0, 2);
+    -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.08), 12, 0, 0, 2);
 }
 
 .title-label {
-    -fx-font-size: 20px;
+    -fx-font-size: 22px;
     -fx-font-weight: bold;
-    -fx-text-fill: #F3F4F6; /* Blanco hueso */
+    -fx-text-fill: #0f172a;
     -fx-padding: 20px 24px;
 }
 
 .nav-bar {
-    -fx-background-color: #1a202c;
+    -fx-background-color: transparent;
     -fx-padding: 12px 24px;
     -fx-spacing: 16px;
     -fx-alignment: center-left;
 }
 
 .nav-button {
-    -fx-background-color: #3f3f46;
-    -fx-text-fill: #e5e7eb;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #334155;
     -fx-font-size: 14px;
     -fx-font-weight: bold;
     -fx-padding: 10px 20px;
     -fx-background-radius: 6px;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 6px;
     -fx-cursor: hand;
 }
 
 .nav-button:hover {
-    -fx-background-color: #4b5563;
-    -fx-text-fill: #ffffff;
+    -fx-background-color: #eff6ff;
+    -fx-text-fill: #0f172a;
 }
 
 .nav-button-exit {
-    -fx-background-color: transparent;
-    -fx-text-fill: #FF3228;
-    -fx-border-color: #FF3228;
+    -fx-background-color: #fff5f5;
+    -fx-text-fill: #c1121f;
+    -fx-border-color: #fca5a5;
     -fx-border-width: 1.5px;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
 }
 
 .nav-button-exit:hover {
-    -fx-background-color: #FF3228;
-    -fx-text-fill: #FFFFFF;
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #991b1b;
 }
 
 .center-content {
-    -fx-background-color: #1e1e1e; /* Fondo general oscuro mate */
+    -fx-background-color: #f5f7fb;
 }
 
 /* ==================================================
    CONTENEDORES DE VISTA Y TEXTOS GENERALES
    ================================================== */
 .view-container {
-    -fx-padding: 24px;
+    -fx-padding: 16px;
 }
 
 .scroll-container {
-    -fx-background-color: transparent;
-    -fx-background: #1e1e1e;
+    -fx-background-color: #f5f7fb;
+    -fx-background: #f5f7fb;
 }
 
 .scroll-container > .viewport {
-    -fx-background-color: transparent;
+    -fx-background-color: #f5f7fb;
 }
 
 .view-title {
     -fx-font-size: 24px;
     -fx-font-weight: bold;
-    -fx-text-fill: #F3F4F6;
+    -fx-text-fill: #0f172a;
 }
 
 .section-title {
-    -fx-font-size: 16px;
+    -fx-font-size: 15px;
     -fx-font-weight: bold;
-    -fx-text-fill: #D1D5DB; /* Gris claro */
-    -fx-padding: 10px 0 5px 0;
+    -fx-text-fill: #334155;
+    -fx-padding: 6px 0 4px 0;
 }
 
 .status-label {
-    -fx-text-fill: #9CA3AF;
+    -fx-text-fill: #64748b;
     -fx-font-size: 13px;
     -fx-font-style: italic;
 }
 
 .danger-label {
-    -fx-text-fill: #FF3228;
+    -fx-text-fill: #c1121f;
     -fx-font-size: 13px;
     -fx-font-weight: bold;
 }
 
 .input-label {
-    -fx-text-fill: #9CA3AF;
-    -fx-font-size: 13px;
+    -fx-text-fill: #475569;
+    -fx-font-size: 15px;
+    -fx-font-weight: 600;
 }
 
 /* ==================================================
    BOTONES DE ACCIÓN (VISTAS INTERNAS)
    ================================================== */
 .action-button {
-    -fx-background-color: #3f3f46;
-    -fx-text-fill: #E5E7EB;
-    -fx-font-size: 13px;
-    -fx-padding: 8px 16px;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #334155;
+    -fx-font-size: 14px;
+    -fx-padding: 7px 14px;
     -fx-background-radius: 4px;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 4px;
     -fx-cursor: hand;
 }
 
 .action-button:hover {
-    -fx-background-color: #4b5563;
-    -fx-text-fill: #FFFFFF;
+    -fx-background-color: #eff6ff;
+    -fx-text-fill: #0f172a;
+}
+
+.chart-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10px;
+    -fx-border-color: #dbe3ee;
+    -fx-border-radius: 10px;
+    -fx-padding: 14px;
+    -fx-effect: dropshadow(three-pass-box, rgba(15,23,42,0.06), 10, 0, 0, 2);
+}
+
+.form-grid {
+    -fx-background-color: transparent;
 }
 
 /* ==================================================
    INPUTS (TextField, ComboBox, DatePicker)
    ================================================== */
 .dark-input {
-    -fx-background-color: #2d2d2d;
-    -fx-text-fill: #E5E7EB;
-    -fx-border-color: #4b5563; /* Borde visible */
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #111827;
+    -fx-border-color: #cbd5e1;
     -fx-border-radius: 4px;
     -fx-background-radius: 4px;
     -fx-padding: 6px 10px;
@@ -136,28 +155,28 @@
 
 /* Placeholder visible */
 .dark-input .text-input {
-    -fx-prompt-text-fill: #9ca3af;
+    -fx-prompt-text-fill: #94a3b8;
 }
 
 .dark-input:focused {
-    -fx-border-color: #FF3228;
+    -fx-border-color: #2563eb;
 }
 
 /* Texto del elemento seleccionado en el ComboBox */
 .combo-box .list-cell {
-    -fx-text-fill: #F3F4F6; 
+    -fx-text-fill: #111827;
 }
 
 /* El menú desplegable (popup) del ComboBox */
 .combo-box-popup .list-view {
-    -fx-background-color: #1E1E1E; /* Fondo oscuro a juego */
-    -fx-border-color: #374151;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
     -fx-border-width: 1px;
 }
 
 /* Las opciones dentro del desplegable */
 .combo-box-popup .list-cell {
-    -fx-text-fill: #F3F4F6;
+    -fx-text-fill: #111827;
     -fx-background-color: transparent;
     -fx-padding: 8px;
 }
@@ -165,53 +184,54 @@
 /* Efecto hover y selección dentro del desplegable */
 .combo-box-popup .list-cell:hover,
 .combo-box-popup .list-cell:filled:selected {
-    -fx-background-color: #FF3228;
-    -fx-text-fill: #FFFFFF;
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #0f172a;
 }
 
 /* ==================================================
    TABLAS (SOLUCIÓN CRÍTICA DE LEGIBILIDAD)
    ================================================== */
 .data-table {
-    -fx-background-color: #1e1e1e;
-    -fx-border-color: #374151; /* Gris oscuro definido */
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
 }
 
 .data-table .column-header-background {
-    -fx-background-color: #111827; /* Fondo de cabecera más oscuro */
+    -fx-background-color: #e2e8f0;
     -fx-background-radius: 6px 6px 0 0;
 }
 
 .data-table .column-header, .data-table .filler {
-    -fx-background-color: #111827;
-    -fx-border-color: #374151;
+    -fx-background-color: #e2e8f0;
+    -fx-border-color: #cbd5e1;
     -fx-border-width: 0 1 1 0;
 }
 
 .data-table .column-header .label {
-    -fx-text-fill: #e5e7eb;
+    -fx-text-fill: #0f172a;
     -fx-font-weight: bold;
     -fx-alignment: center-left;
+    -fx-font-size: 15px;
 }
 
 .data-table .table-row-cell {
-    -fx-background-color: #1e1e1e;
-    -fx-text-fill: #d1d5db; /* Texto de fila principal: Gris claro visible */
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #334155;
     -fx-cell-size: 35px;
-    -fx-border-color: #374151;
+    -fx-border-color: #e2e8f0;
     -fx-border-width: 0 0 1 0;
 }
 
 /* Filas alternas */
 .data-table .table-row-cell:even {
-    -fx-background-color: #262626;
+    -fx-background-color: #f8fafc;
 }
 
 .data-table .table-row-cell:hover {
-    -fx-background-color: #374151;
-    -fx-text-fill: #ffffff;
+    -fx-background-color: #e0f2fe;
+    -fx-text-fill: #0f172a;
 }
 
 .data-table .table-row-cell:selected {
@@ -223,12 +243,12 @@
    TITLED PANES
    ================================================== */
 .dark-titled-pane {
-    -fx-text-fill: #FFFFFF;
+    -fx-text-fill: #0f172a;
 }
 
 .dark-titled-pane > .title {
-    -fx-background-color: #2d3748;
-    -fx-border-color: #1a202c;
+    -fx-background-color: #e2e8f0;
+    -fx-border-color: #cbd5e1;
     -fx-border-radius: 6px;
     -fx-background-radius: 6px;
 }
@@ -239,8 +259,8 @@
 }
 
 .dark-titled-pane > .content {
-    -fx-background-color: #1e1e1e;
-    -fx-border-color: #374151;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
     -fx-border-width: 0 1 1 1;
     -fx-border-radius: 0 0 6px 6px;
     -fx-background-radius: 0 0 6px 6px;
@@ -252,7 +272,7 @@
 /* Pista (track) */
 .data-table .scroll-bar:vertical .track,
 .scroll-container .scroll-bar:vertical .track {
-    -fx-background-color: #2d3748;
+    -fx-background-color: #e2e8f0;
     -fx-background-radius: 0 6px 6px 0;
     -fx-border-color: transparent;
 }
@@ -260,7 +280,7 @@
 /* Pulgar (thumb) */
 .data-table .scroll-bar:vertical .thumb,
 .scroll-container .scroll-bar:vertical .thumb {
-    -fx-background-color: #4b5563; /* Gris medio-claro, sutil y visible */
+    -fx-background-color: #94a3b8;
     -fx-background-insets: 2, 0, 0;
     -fx-background-radius: 2em;
     -fx-cursor: hand;
@@ -268,58 +288,58 @@
 
 .data-table .scroll-bar:vertical .thumb:hover,
 .scroll-container .scroll-bar:vertical .thumb:hover {
-    -fx-background-color: #9ca3af;
+    -fx-background-color: #64748b;
 }
 
 /* Esquinas de Scroll */
 .data-table .scroll-bar:corner,
 .scroll-container .scroll-bar:corner {
-    -fx-background-color: #1e1e1e;
+    -fx-background-color: #ffffff;
 }
 
 /* ==================================================
    CELDAS Y FILAS DE LA TABLA (FORZADO A BLANCO)
    ================================================== */
 .data-table .table-row-cell {
-    -fx-background-color: #1E1E1E;
-    -fx-text-fill: #F3F4F6 !important; /* Forzamos el color base */
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #334155;
     -fx-cell-size: 35px;
-    -fx-border-color: #374151;
+    -fx-border-color: #e2e8f0;
     -fx-border-width: 0 0 1px 0;
 }
 
 /* Filas pares para contraste sutil */
 .data-table .table-row-cell:even {
-    -fx-background-color: #262626;
+    -fx-background-color: #f8fafc;
 }
 
 /* Forzamos también a nivel de celda individual por si JavaFX lo sobreescribe */
 .data-table .table-cell {
-    -fx-text-fill: #F3F4F6 !important;
+    -fx-text-fill: #334155;
 }
 
 /* Efecto hover */
 .data-table .table-row-cell:hover {
-    -fx-background-color: #374151;
+    -fx-background-color: #e0f2fe;
 }
 
 /* Forzar el texto blanco puro al pasar el ratón */
 .data-table .table-row-cell:hover .table-cell {
-    -fx-text-fill: #FFFFFF !important;
+    -fx-text-fill: #0f172a;
 }
 
 /* Fila seleccionada (Usando el rojo de acento) */
 .data-table .table-row-cell:selected {
-    -fx-background-color: #FF3228 !important;
+    -fx-background-color: #FF3228;
 }
 
 /* Forzar el texto blanco puro en la fila seleccionada */
 .data-table .table-row-cell:selected .table-cell {
-    -fx-text-fill: #FFFFFF !important;
+    -fx-text-fill: #FFFFFF;
 }
 
 .data-table .table-row-cell:empty {
-    -fx-background-color: #1e1e1e;
+    -fx-background-color: #ffffff;
     -fx-border-color: transparent;
 }
 .data-table .table-row-cell:empty .table-cell {
@@ -337,101 +357,86 @@
     -fx-padding: 0;
 }
 
-/* ==================================================
-   DATEPICKER DARK THEME
-   ================================================== */
-
-/* Campo principal */
+/* Main DatePicker */
 .date-picker {
-    -fx-background-color: #2d2d2d;
-    -fx-border-color: #4b5563;
-    -fx-border-radius: 4px;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
     -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
 }
 
-/* Editor interno del DatePicker */
+/* Text editor inside DatePicker */
 .date-picker .text-field {
-    -fx-background-color: transparent;
-    -fx-text-fill: #F3F4F6;
-    -fx-prompt-text-fill: #9ca3af;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #111827;
+    -fx-prompt-text-fill: #94a3b8;
+    -fx-background-insets: 0;
+    -fx-border-width: 0;
 }
 
-/* Botón del calendario */
-.date-picker > .arrow-button {
-    -fx-background-color: #3f3f46;
+/* Calendar icon button */
+.date-picker .arrow-button {
+    -fx-background-color: #e2e8f0;
     -fx-background-radius: 0 4px 4px 0;
 }
 
-.date-picker > .arrow-button:hover {
-    -fx-background-color: #4b5563;
+.date-picker .arrow-button:hover {
+    -fx-background-color: #cbd5e1;
 }
 
-/* Icono de flecha */
-.date-picker > .arrow-button > .arrow {
-    -fx-background-color: #F3F4F6;
+/* Arrow icon */
+.date-picker .arrow-button .arrow {
+    -fx-background-color: #334155;
 }
 
-/* Popup del calendario */
+/* Popup calendar */
 .date-picker-popup {
-    -fx-background-color: #1e1e1e;
-    -fx-border-color: #374151;
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
 }
 
-/* Fondo general del calendario */
-.date-picker-popup > .month-year-pane {
-    -fx-background-color: #111827;
+/* Month/year header */
+.date-picker-popup .month-year-pane {
+    -fx-background-color: #e2e8f0;
 }
 
-/* Texto mes/año */
-.date-picker-popup > .month-year-pane .label {
-    -fx-text-fill: #F3F4F6;
+/* Month/year text */
+.date-picker-popup .month-year-pane .label {
+    -fx-text-fill: #0f172a;
 }
 
-/* Botones navegación mes */
-.date-picker-popup .spinner .button {
-    -fx-background-color: #3f3f46;
+/* Weekday names */
+.date-picker-popup .calendar-grid .day-name-cell {
+    -fx-text-fill: #64748b;
+    -fx-background-color: #ffffff;
 }
 
-.date-picker-popup .spinner .button:hover {
-    -fx-background-color: #4b5563;
-}
-
-/* Días del calendario */
-.date-picker-popup .calendar-grid {
-    -fx-background-color: #1e1e1e;
-}
-
-/* Nombres de días */
-.date-picker-popup .day-name-cell {
-    -fx-text-fill: #9CA3AF;
-}
-
-/* Celdas de días */
-.date-picker-popup .day-cell {
-    -fx-background-color: #1e1e1e;
-    -fx-text-fill: #F3F4F6;
+/* Date cells */
+.date-picker-popup .calendar-grid .day-cell {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #111827;
     -fx-border-color: transparent;
 }
 
-/* Hover días */
-.date-picker-popup .day-cell:hover {
-    -fx-background-color: #374151;
+/* Hovered day */
+.date-picker-popup .calendar-grid .day-cell:hover {
+    -fx-background-color: #dbeafe;
+    -fx-text-fill: #0f172a;
 }
 
-/* Día seleccionado */
-.date-picker-popup .day-cell:selected {
+/* Selected day */
+.date-picker-popup .calendar-grid .day-cell:selected {
     -fx-background-color: #FF3228;
     -fx-text-fill: white;
 }
 
-/* Día actual */
-.date-picker-popup .today {
+/* Today's date */
+.date-picker-popup .calendar-grid .today {
     -fx-border-color: #FF3228;
     -fx-border-width: 1px;
 }
 
-/* Días de otros meses */
-.date-picker-popup .previous-month,
-.date-picker-popup .next-month {
-    -fx-text-fill: #6b7280;
+/* Days outside current month */
+.date-picker-popup .calendar-grid .day-cell:disabled {
+    -fx-opacity: 0.3;
 }

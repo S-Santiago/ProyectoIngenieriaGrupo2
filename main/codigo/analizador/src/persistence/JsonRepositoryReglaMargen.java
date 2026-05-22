@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -94,6 +95,7 @@ public class JsonRepositoryReglaMargen {
     private void guardarEnFichero() {
         try {
             Files.createDirectories(DATA_DIRECTORY);
+            reglas.sort(Comparator.comparing(ReglaMargen::getId, Comparator.nullsLast(Integer::compareTo)));
             mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), reglas);
         } catch (IOException e) {
             System.err.println("Error al guardar reglas.json: " + e.getMessage());

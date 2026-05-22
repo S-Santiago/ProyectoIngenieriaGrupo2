@@ -10,7 +10,9 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -24,7 +26,9 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import model.EstadoPedido;
 import model.LineaPedido;
+import model.ZonaComercial;
 import persistence.CsvImporter;
 import view.ConsolaErroresDialog;
 
@@ -34,6 +38,7 @@ import view.ConsolaErroresDialog;
  */
 public class ExploradorController {
 
+    private static final String OPCION_TODAS = "Todas";
     private static final String FILTRO_CATEGORIA = "Categoría";
     private static final String FILTRO_ZONA = "Zona Comercial";
     private static final String FILTRO_ESTADO = "Estado";
@@ -45,12 +50,15 @@ public class ExploradorController {
     private final ObservableList<LineaPedido> pedidosTabla = FXCollections.observableArrayList();
     private final List<String> validationErrors = new ArrayList<>();
     private final CsvImporter csvImporter = new CsvImporter();
+    private final Map<Integer, String> nombreZonaPorId = new java.util.HashMap<>();
+    private boolean catalogoZonasCargado = false;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-uuuu")
             .withResolverStyle(ResolverStyle.STRICT);
 
     @FXML private ComboBox<String> tipoFiltroComboBox;
     @FXML private TextField valorFiltroTextField;
+    @FXML private ComboBox<String> valorFiltroComboBox;
     @FXML private DatePicker fechaInicioDatePicker;
     @FXML private DatePicker fechaFinDatePicker;
     @FXML private Label valorFiltroLabel;
@@ -89,9 +97,9 @@ public class ExploradorController {
     public void initialize() {
         configurarColumnas();
         configurarControlesFiltro();
-        cargarPedidosDesdeCsv();
         pedidosTableView.setItems(pedidosTabla);
         refrescarTabla();
+        Platform.runLater(this::cargarPedidosDesdeCsv);
     }
 
     private void cargarPedidosDesdeCsv() {
@@ -116,6 +124,7 @@ public class ExploradorController {
         tareaCarga.setOnSucceeded(evt -> {
             CsvImporter.ImportResult<LineaPedido> resultadoImportacion = tareaCarga.getValue();
             List<LineaPedido> cargados = resultadoImportacion == null ? List.of() : resultadoImportacion.getElementos();
+            int avisos = resultadoImportacion == null ? 0 : resultadoImportacion.getAvisos().size();
 
             if (resultadoImportacion != null && resultadoImportacion.tieneAvisos()) {
                 ConsolaErroresDialog.mostrarAdvertencia(
@@ -126,10 +135,15 @@ public class ExploradorController {
             }
 
             if (cargados == null || cargados.isEmpty()) {
-                actualizarEstado("El CSV no devolvió pedidos válidos.");
+                actualizarEstado(avisos > 0
+                    ? "El CSV no devolvió pedidos válidos. Avisos: " + avisos
+                    : "El CSV no devolvió pedidos válidos.");
             } else {
                 pedidos.addAll(cargados);
-                actualizarEstado("Pedidos cargados desde CSV: " + pedidos.size());
+                refrescarOpcionesFiltros();
+                actualizarEstado(avisos > 0
+                    ? "Pedidos cargados desde CSV: " + pedidos.size() + " | Avisos: " + avisos
+                    : "Pedidos cargados desde CSV: " + pedidos.size());
                 refrescarTabla();
             }
         });
@@ -164,6 +178,8 @@ public class ExploradorController {
         tipoFiltroComboBox.getSelectionModel().select(FILTRO_CATEGORIA);
         tipoFiltroComboBox.valueProperty().addListener((observable, valorAnterior, valorNuevo) -> actualizarControlesFiltro());
 
+        refrescarOpcionesFiltros();
+
         valorFiltroTextField.setPromptText("Escribe la categoría");
         fechaInicioLabel.setVisible(false);
         fechaInicioLabel.setManaged(false);
@@ -180,41 +196,56 @@ public class ExploradorController {
     @FXML
     public void actualizarControlesFiltro() {
         String tipoFiltro = tipoFiltroComboBox.getValue();
-        boolean usaTexto = !FILTRO_FECHA.equals(tipoFiltro);
+        refrescarOpcionesFiltros();
+        boolean usaFecha = FILTRO_FECHA.equals(tipoFiltro);
+        boolean usaCombo = !usaFecha;
 
-        valorFiltroLabel.setVisible(usaTexto);
-        valorFiltroLabel.setManaged(usaTexto);
-        valorFiltroTextField.setVisible(usaTexto);
-        valorFiltroTextField.setManaged(usaTexto);
+        valorFiltroLabel.setVisible(usaCombo);
+        valorFiltroLabel.setManaged(usaCombo);
+        valorFiltroTextField.setVisible(false);
+        valorFiltroTextField.setManaged(false);
 
-        fechaInicioLabel.setVisible(!usaTexto);
-        fechaInicioLabel.setManaged(!usaTexto);
-        fechaInicioDatePicker.setVisible(!usaTexto);
-        fechaInicioDatePicker.setManaged(!usaTexto);
-        fechaFinLabel.setVisible(!usaTexto);
-        fechaFinLabel.setManaged(!usaTexto);
-        fechaFinDatePicker.setVisible(!usaTexto);
-        fechaFinDatePicker.setManaged(!usaTexto);
+        if (valorFiltroComboBox != null) {
+            valorFiltroComboBox.setVisible(usaCombo);
+            valorFiltroComboBox.setManaged(usaCombo);
+        }
+
+        fechaInicioLabel.setVisible(usaFecha);
+        fechaInicioLabel.setManaged(usaFecha);
+        fechaInicioDatePicker.setVisible(usaFecha);
+        fechaInicioDatePicker.setManaged(usaFecha);
+        fechaFinLabel.setVisible(usaFecha);
+        fechaFinLabel.setManaged(usaFecha);
+        fechaFinDatePicker.setVisible(usaFecha);
+        fechaFinDatePicker.setManaged(usaFecha);
 
         switch (tipoFiltro) {
             case FILTRO_CATEGORIA -> {
                 valorFiltroLabel.setText("Categoría");
-                valorFiltroTextField.setPromptText("Escribe la categoría");
+                if (valorFiltroComboBox != null) {
+                    valorFiltroComboBox.setPromptText("Selecciona la categoría");
+                }
             }
             case FILTRO_ZONA -> {
                 valorFiltroLabel.setText("Zona comercial");
-                valorFiltroTextField.setPromptText("Introduce el ID de la zona");
+                if (valorFiltroComboBox != null) {
+                    valorFiltroComboBox.setPromptText("Selecciona la zona comercial");
+                }
             }
             case FILTRO_ESTADO -> {
                 valorFiltroLabel.setText("Estado");
-                valorFiltroTextField.setPromptText("Escribe el estado");
+                if (valorFiltroComboBox != null) {
+                    valorFiltroComboBox.setPromptText("Selecciona el estado");
+                }
             }
             case FILTRO_FECHA -> {
                 valorFiltroLabel.setText("Valor");
             }
             default -> {
                 valorFiltroLabel.setText("Categoría");
-                valorFiltroTextField.setPromptText("Escribe la categoría");
+                if (valorFiltroComboBox != null) {
+                    valorFiltroComboBox.setPromptText("Selecciona la categoría");
+                }
             }
         }
     }
@@ -258,6 +289,7 @@ public class ExploradorController {
         }
 
         mostrarTodosLosPedidos();
+        refrescarOpcionesFiltros();
 
         if (!validationErrors.isEmpty()) {
             actualizarEstado("Pedidos cargados: " + pedidos.size() + " | Avisos: " + validationErrors.size());
@@ -455,19 +487,19 @@ public class ExploradorController {
         String tipoFiltro = opcionSeleccionada.trim().toLowerCase();
 
         return switch (tipoFiltro) {
-            case "categoría", "categoria" -> filtrarPorCategoria(valorFiltroTextField != null ? valorFiltroTextField.getText() : null);
+            case "categoría", "categoria" -> filtrarPorCategoria(obtenerValorFiltroSeleccionado());
             case "zona comercial", "zonacomercial" -> {
-                String valor = valorFiltroTextField != null ? valorFiltroTextField.getText() : null;
+                String valor = obtenerValorFiltroSeleccionado();
                 if (valor == null || valor.isBlank()) {
                     yield new ArrayList<>();
                 }
-                try {
-                    yield filtrarPorZonaComercial(Integer.parseInt(valor.trim()));
-                } catch (NumberFormatException exception) {
+                Integer zona = resolverIdZona(valor);
+                if (zona == null) {
                     yield new ArrayList<>();
                 }
+                yield filtrarPorZonaComercial(zona);
             }
-            case "estado" -> filtrarPorEstado(valorFiltroTextField != null ? valorFiltroTextField.getText() : null);
+            case "estado" -> filtrarPorEstado(obtenerValorEstadoSeleccionado());
             case "fecha" -> {
                 if (fechaInicioDatePicker == null || fechaFinDatePicker == null || fechaInicioDatePicker.getValue() == null || fechaFinDatePicker.getValue() == null) {
                     yield new ArrayList<>();
@@ -491,33 +523,43 @@ public class ExploradorController {
         List<LineaPedido> resultado;
         switch (tipoFiltro) {
             case FILTRO_CATEGORIA -> {
-                String categoria = valorFiltroTextField.getText();
-                if (categoria == null || categoria.isBlank()) {
-                    actualizarEstado("Escribe una categoría para filtrar.");
+                String categoria = obtenerValorFiltroSeleccionado();
+                if (categoria == null || categoria.isBlank() || OPCION_TODAS.equalsIgnoreCase(categoria.trim())) {
+                    mostrarTodosLosPedidos();
+                    actualizarEstado("Mostrando todos los pedidos.");
+                    return;
+                }
+                if (categoria.isBlank()) {
+                    actualizarEstado("Selecciona una categoría para filtrar.");
                     return;
                 }
                 resultado = filtrarPorCategoria(categoria.trim());
                 actualizarEstado("Filtrado por categoría: " + categoria.trim() + " | Resultados: " + resultado.size());
             }
             case FILTRO_ZONA -> {
-                String zonaTexto = valorFiltroTextField.getText();
-                if (zonaTexto == null || zonaTexto.isBlank()) {
-                    actualizarEstado("Escribe un ID de zona para filtrar.");
+                String zonaTexto = obtenerValorFiltroSeleccionado();
+                if (zonaTexto == null || zonaTexto.isBlank() || OPCION_TODAS.equalsIgnoreCase(zonaTexto.trim())) {
+                    mostrarTodosLosPedidos();
+                    actualizarEstado("Mostrando todos los pedidos.");
                     return;
                 }
-                try {
-                    int zona = Integer.parseInt(zonaTexto.trim());
-                    resultado = filtrarPorZonaComercial(zona);
-                    actualizarEstado("Filtrado por zona comercial: " + zona + " | Resultados: " + resultado.size());
-                } catch (NumberFormatException exception) {
-                    actualizarEstado("La zona comercial debe ser un número entero.");
+                Integer zona = resolverIdZona(zonaTexto);
+                if (zona == null) {
+                    actualizarEstado("Selecciona una zona comercial válida.");
                     return;
                 }
+                resultado = filtrarPorZonaComercial(zona);
+                actualizarEstado("Filtrado por zona comercial: " + formatearZonaParaFiltro(zona) + " | Resultados: " + resultado.size());
             }
             case FILTRO_ESTADO -> {
-                String estado = valorFiltroTextField.getText();
-                if (estado == null || estado.isBlank()) {
-                    actualizarEstado("Escribe un estado para filtrar.");
+                String estado = obtenerValorEstadoSeleccionado();
+                if (estado == null || estado.isBlank() || OPCION_TODAS.equalsIgnoreCase(estado.trim())) {
+                    mostrarTodosLosPedidos();
+                    actualizarEstado("Mostrando todos los pedidos.");
+                    return;
+                }
+                if (estado.isBlank()) {
+                    actualizarEstado("Selecciona un estado para filtrar.");
                     return;
                 }
                 resultado = filtrarPorEstado(estado.trim());
@@ -549,12 +591,171 @@ public class ExploradorController {
     @FXML
     public void limpiarFiltros() {
         valorFiltroTextField.clear();
+        if (valorFiltroComboBox != null) {
+            valorFiltroComboBox.getSelectionModel().select(OPCION_TODAS);
+        }
         fechaInicioDatePicker.setValue(null);
         fechaFinDatePicker.setValue(null);
         tipoFiltroComboBox.getSelectionModel().select(FILTRO_CATEGORIA);
         actualizarControlesFiltro();
         mostrarTodosLosPedidos();
         actualizarEstado("Filtros limpiados. Mostrando todos los pedidos.");
+    }
+
+    private void refrescarOpcionesFiltros() {
+        if (valorFiltroComboBox == null) {
+            return;
+        }
+
+        String tipoFiltro = tipoFiltroComboBox != null ? tipoFiltroComboBox.getValue() : null;
+        if (tipoFiltro == null || tipoFiltro.isBlank()) {
+            List<String> categorias = new ArrayList<>();
+            categorias.add(OPCION_TODAS);
+            categorias.addAll(obtenerCategoriasOrdenadas());
+            valorFiltroComboBox.getItems().setAll(categorias);
+            valorFiltroComboBox.getSelectionModel().select(OPCION_TODAS);
+            valorFiltroComboBox.setPromptText("Selecciona la categoría");
+            return;
+        }
+
+        switch (tipoFiltro) {
+            case FILTRO_CATEGORIA -> {
+                List<String> categorias = new ArrayList<>();
+                categorias.add(OPCION_TODAS);
+                categorias.addAll(obtenerCategoriasOrdenadas());
+                valorFiltroComboBox.getItems().setAll(categorias);
+                valorFiltroComboBox.getSelectionModel().select(OPCION_TODAS);
+                valorFiltroComboBox.setPromptText("Selecciona la categoría");
+            }
+            case FILTRO_ZONA -> {
+                List<String> zonas = new ArrayList<>();
+                zonas.add(OPCION_TODAS);
+                zonas.addAll(obtenerZonasOrdenadas());
+                valorFiltroComboBox.getItems().setAll(zonas);
+                valorFiltroComboBox.getSelectionModel().select(OPCION_TODAS);
+                valorFiltroComboBox.setPromptText("Selecciona la zona comercial");
+            }
+            case FILTRO_ESTADO -> {
+                valorFiltroComboBox.getItems().setAll(
+                    OPCION_TODAS,
+                    aCapitalCasePrimeraPalabra(EstadoPedido.COMPLETADO.getValor()),
+                    aCapitalCasePrimeraPalabra(EstadoPedido.CANCELADO.getValor()),
+                    aCapitalCasePrimeraPalabra(EstadoPedido.PENDIENTE.getValor())
+                );
+                valorFiltroComboBox.getSelectionModel().select(OPCION_TODAS);
+                valorFiltroComboBox.setPromptText("Selecciona el estado");
+            }
+            default -> {
+                valorFiltroComboBox.getItems().clear();
+            }
+        }
+    }
+
+    private List<String> obtenerCategoriasOrdenadas() {
+        return obtenerCategoriasUnicas().stream()
+                .map(this::aCapitalCasePrimeraPalabra)
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.toList());
+    }
+
+    private List<String> obtenerZonasOrdenadas() {
+        asegurarCatalogoZonasCargado();
+        return obtenerZonasComerciales().stream()
+                .map(this::formatearZonaParaFiltro)
+                .filter(zona -> zona != null && !zona.isBlank())
+                .sorted(String.CASE_INSENSITIVE_ORDER)
+                .collect(Collectors.toList());
+    }
+
+    private String formatearZonaParaFiltro(Integer idZona) {
+        if (idZona == null) {
+            return "";
+        }
+
+        asegurarCatalogoZonasCargado();
+        String nombreZona = nombreZonaPorId.get(idZona);
+        if (nombreZona == null || nombreZona.isBlank()) {
+            return "Zona " + idZona;
+        }
+
+        return nombreZona;
+    }
+
+    private Integer resolverIdZona(String valorZona) {
+        if (valorZona == null) {
+            return null;
+        }
+
+        String zonaTexto = valorZona.trim();
+        if (zonaTexto.isBlank() || OPCION_TODAS.equalsIgnoreCase(zonaTexto)) {
+            return null;
+        }
+
+        asegurarCatalogoZonasCargado();
+        for (Integer idZona : obtenerZonasComerciales()) {
+            String etiqueta = formatearZonaParaFiltro(idZona);
+            if (zonaTexto.equalsIgnoreCase(etiqueta)) {
+                return idZona;
+            }
+        }
+
+        try {
+            return Integer.valueOf(zonaTexto);
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    private void asegurarCatalogoZonasCargado() {
+        if (catalogoZonasCargado) {
+            return;
+        }
+
+        catalogoZonasCargado = true;
+        try {
+            var recursoZonas = getClass().getResource("/data/zonas.csv");
+            if (recursoZonas == null) {
+                return;
+            }
+
+            List<ZonaComercial> zonas = csvImporter.importCSVZonasComerciales(Path.of(recursoZonas.toURI()).toString());
+            for (ZonaComercial zona : zonas) {
+                if (zona != null && zona.getId() != null && zona.getNombre() != null && !zona.getNombre().isBlank()) {
+                    nombreZonaPorId.put(zona.getId(), zona.getNombre().trim());
+                }
+            }
+        } catch (java.net.URISyntaxException | IllegalArgumentException | SecurityException ignored) {
+            // Si no se puede cargar el catálogo, se usa fallback "Zona {id}".
+        }
+    }
+
+    private String aCapitalCasePrimeraPalabra(String valor) {
+        if (valor == null) {
+            return null;
+        }
+
+        String texto = valor.trim();
+        if (texto.isEmpty()) {
+            return texto;
+        }
+
+        int primerSeparador = texto.indexOf(' ');
+        String primeraPalabra = primerSeparador < 0 ? texto : texto.substring(0, primerSeparador);
+        String resto = primerSeparador < 0 ? "" : texto.substring(primerSeparador);
+        if (primeraPalabra.isEmpty()) {
+            return texto;
+        }
+
+        String palabraFormateada = primeraPalabra.substring(0, 1).toUpperCase() + primeraPalabra.substring(1).toLowerCase();
+        return palabraFormateada + resto;
+    }
+
+    private String obtenerValorFiltroSeleccionado() {
+        if (valorFiltroComboBox != null && valorFiltroComboBox.getValue() != null) {
+            return valorFiltroComboBox.getValue();
+        }
+
+        return valorFiltroTextField != null ? valorFiltroTextField.getText() : null;
     }
 
     private void mostrarTodosLosPedidos() {
@@ -601,5 +802,13 @@ public class ExploradorController {
         } catch (DateTimeParseException ignored) {
             return LocalDate.parse(textoFecha, DATE_TIME_FORMATTER);
         }
+    }
+
+    private String obtenerValorEstadoSeleccionado() {
+        if (valorFiltroComboBox != null && valorFiltroComboBox.getValue() != null) {
+            return valorFiltroComboBox.getValue();
+        }
+
+        return valorFiltroTextField != null ? valorFiltroTextField.getText() : null;
     }
 }

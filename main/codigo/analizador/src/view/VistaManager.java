@@ -25,7 +25,7 @@ public class VistaManager {
     }
 
     public void mostrarPanelRentabilidad() {
-        cargarVista("/fxml/panel_rentabilidad.fxml", "Panel de Rentabilidad", null);
+        cargarVista("/fxml/panel_rentabilidad.fxml", "Gestión comercial y rentabilidad", null);
     }
 
     private void cargarVista(String fxmlPath, String titulo, Object controlador) {

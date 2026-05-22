@@ -11,10 +11,17 @@ import java.util.Map;
 import java.util.Set;
 
 import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.PieChart;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
+import javafx.scene.control.TextArea;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -80,9 +87,72 @@ public class RentabilidadController {
     private TableColumn<DesviacionZonaRow, BigDecimal> porcentajeZonaColumn;
 
     @FXML
+    private TableView<ZonaComercial> zonasTableView;
+    @FXML
+    private TableColumn<ZonaComercial, Integer> zonaIdColumn;
+    @FXML
+    private TableColumn<ZonaComercial, String> zonaNombreColumn;
+    @FXML
+    private TableColumn<ZonaComercial, String> zonaPaisColumn;
+    @FXML
+    private TableColumn<ZonaComercial, String> zonaResponsableColumn;
+    @FXML
+    private TableColumn<ZonaComercial, Double> zonaObjetivoColumn;
+
+    @FXML
+    private TextField zonaIdField;
+    @FXML
+    private TextField zonaNombreField;
+    @FXML
+    private TextField zonaPaisField;
+    @FXML
+    private TextField zonaResponsableField;
+    @FXML
+    private TextField zonaObjetivoField;
+
+    @FXML
+    private TableView<ReglaMargen> reglasTableView;
+    @FXML
+    private TableColumn<ReglaMargen, Integer> reglaIdColumn;
+    @FXML
+    private TableColumn<ReglaMargen, String> reglaCategoriaColumn;
+    @FXML
+    private TableColumn<ReglaMargen, Double> reglaMargenColumn;
+    @FXML
+    private TableColumn<ReglaMargen, Boolean> reglaActivaColumn;
+    @FXML
+    private TableColumn<ReglaMargen, String> reglaDescripcionColumn;
+
+    @FXML
+    private TextField reglaIdField;
+    @FXML
+    private TextField reglaCategoriaField;
+    @FXML
+    private TextField reglaMargenField;
+    @FXML
+    private CheckBox reglaActivaCheckBox;
+    @FXML
+    private TextArea reglaDescripcionTextArea;
+
+    @FXML
+    private BarChart<String, Number> categoriasBarChart;
+    @FXML
+    private LineChart<String, Number> kpisMensualesLineChart;
+    @FXML
+    private PieChart zonasPieChart;
+
+    private final ObservableList<ZonaComercial> zonasItems = FXCollections.observableArrayList();
+    private final ObservableList<ReglaMargen> reglasItems = FXCollections.observableArrayList();
+
+    @FXML
     public void initialize() {
+        cargarDatos();
         configurarTablas();
+        configurarGestion();
+        configurarGraficas();
         refrescarPanel();
+        refrescarGestion();
+        refrescarGraficas();
     }
 
     private void configurarTablas() {
@@ -113,6 +183,40 @@ public class RentabilidadController {
         desviacionesZonasTableView.setPlaceholder(new Label("No hay zonas comerciales cargadas para mostrar desviaciones."));
     }
 
+    private void configurarGestion() {
+        zonasTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        reglasTableView.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
+        zonasTableView.setItems(zonasItems);
+        reglasTableView.setItems(reglasItems);
+
+        zonaIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        zonaNombreColumn.setCellValueFactory(new PropertyValueFactory<>("nombre"));
+        zonaPaisColumn.setCellValueFactory(new PropertyValueFactory<>("pais"));
+        zonaResponsableColumn.setCellValueFactory(new PropertyValueFactory<>("responsableComercial"));
+        zonaObjetivoColumn.setCellValueFactory(new PropertyValueFactory<>("objetivoFacturacionAnual"));
+
+        reglaIdColumn.setCellValueFactory(new PropertyValueFactory<>("id"));
+        reglaCategoriaColumn.setCellValueFactory(new PropertyValueFactory<>("categoriaProductoAfectada"));
+        reglaMargenColumn.setCellValueFactory(new PropertyValueFactory<>("margenMinimoPortcentaje"));
+        reglaActivaColumn.setCellValueFactory(new PropertyValueFactory<>("activa"));
+        reglaDescripcionColumn.setCellValueFactory(new PropertyValueFactory<>("descripcion"));
+
+        zonasTableView.setPlaceholder(new Label("No hay zonas comerciales guardadas."));
+        reglasTableView.setPlaceholder(new Label("No hay reglas de margen guardadas."));
+
+        zonasTableView.getSelectionModel().selectedItemProperty().addListener((observable, anterior, seleccionada) -> cargarZonaEnFormulario(seleccionada));
+        reglasTableView.getSelectionModel().selectedItemProperty().addListener((observable, anterior, seleccionada) -> cargarReglaEnFormulario(seleccionada));
+
+        reglaActivaCheckBox.setSelected(true);
+    }
+
+    private void configurarGraficas() {
+        categoriasBarChart.setAnimated(false);
+        kpisMensualesLineChart.setAnimated(false);
+        zonasPieChart.setLabelsVisible(true);
+        zonasPieChart.setLegendVisible(true);
+    }
+
     @FXML
     public void refrescarPanel() {
         try {
@@ -123,6 +227,37 @@ public class RentabilidadController {
             ConsolaErroresDialog.mostrarError(
                 "Error al Refrescar",
                 "No se pudo refrescar el panel.\nDetalle: " + e.getMessage()
+            );
+        }
+    }
+
+    @FXML
+    public void refrescarGestion() {
+        try {
+            zonasItems.setAll(repoZonas.findAll());
+            reglasItems.setAll(repoReglas.findAll());
+            zonasTableView.refresh();
+            reglasTableView.refresh();
+            limpiarFormularioZona();
+            limpiarFormularioRegla();
+        } catch (Exception e) {
+            ConsolaErroresDialog.mostrarError(
+                "Error al Refrescar",
+                "No se pudo refrescar la gestión comercial.\nDetalle: " + e.getMessage()
+            );
+        }
+    }
+
+    @FXML
+    public void refrescarGraficas() {
+        try {
+            cargarGraficaCategorias();
+            cargarGraficaMensual();
+            cargarGraficaZonas();
+        } catch (Exception e) {
+            ConsolaErroresDialog.mostrarError(
+                "Error en Gráficas",
+                "No se pudieron actualizar las gráficas.\nDetalle: " + e.getMessage()
             );
         }
     }
@@ -271,6 +406,110 @@ public class RentabilidadController {
         }
     }
 
+    @FXML
+    public void guardarZonaDesdeFormulario() {
+        try {
+            Integer id = leerEntero(zonaIdField.getText(), siguienteIdZona());
+            String nombre = zonaNombreField.getText() == null ? "" : zonaNombreField.getText().trim();
+            String pais = zonaPaisField.getText() == null ? "" : zonaPaisField.getText().trim();
+            String responsable = zonaResponsableField.getText() == null ? "" : zonaResponsableField.getText().trim();
+            double objetivo = leerDouble(zonaObjetivoField.getText(), 0.0);
+
+            ZonaComercial zona = new ZonaComercial(id, nombre, pais, responsable, objetivo);
+            repoZonas.save(zona);
+
+            refrescarGestion();
+            refrescarGraficas();
+            ConsolaErroresDialog.mostrarInfo("Zona comercial", "Zona guardada correctamente.");
+        } catch (Exception e) {
+            ConsolaErroresDialog.mostrarError(
+                "Error al Guardar Zona",
+                "No se pudo guardar la zona comercial.\nDetalle: " + e.getMessage()
+            );
+        }
+    }
+
+    @FXML
+    public void eliminarZonaSeleccionada() {
+        ZonaComercial seleccionada = zonasTableView.getSelectionModel().getSelectedItem();
+        String id = seleccionada != null ? String.valueOf(seleccionada.getId()) : zonaIdField.getText();
+
+        if (id == null || id.isBlank()) {
+            ConsolaErroresDialog.mostrarError("Eliminar zona", "Selecciona una zona o indica un ID válido.");
+            return;
+        }
+
+        if (repoZonas.delete(id)) {
+            refrescarGestion();
+            refrescarGraficas();
+            ConsolaErroresDialog.mostrarInfo("Zona comercial", "Zona eliminada correctamente.");
+        } else {
+            ConsolaErroresDialog.mostrarError("Eliminar zona", "No se encontró la zona con ID " + id + ".");
+        }
+    }
+
+    @FXML
+    public void limpiarFormularioZona() {
+        zonaIdField.clear();
+        zonaNombreField.clear();
+        zonaPaisField.clear();
+        zonaResponsableField.clear();
+        zonaObjetivoField.clear();
+        zonasTableView.getSelectionModel().clearSelection();
+    }
+
+    @FXML
+    public void guardarReglaDesdeFormulario() {
+        try {
+            Integer id = leerEntero(reglaIdField.getText(), siguienteIdRegla());
+            String categoria = reglaCategoriaField.getText() == null ? "" : reglaCategoriaField.getText().trim();
+            double margen = leerDouble(reglaMargenField.getText(), 0.0);
+            boolean activa = reglaActivaCheckBox.isSelected();
+            String descripcion = reglaDescripcionTextArea.getText() == null ? "" : reglaDescripcionTextArea.getText().trim();
+
+            ReglaMargen regla = new ReglaMargen(id, categoria, margen, activa, descripcion);
+            repoReglas.save(regla);
+
+            refrescarGestion();
+            refrescarGraficas();
+            ConsolaErroresDialog.mostrarInfo("Regla de margen", "Regla guardada correctamente.");
+        } catch (Exception e) {
+            ConsolaErroresDialog.mostrarError(
+                "Error al Guardar Regla",
+                "No se pudo guardar la regla de margen.\nDetalle: " + e.getMessage()
+            );
+        }
+    }
+
+    @FXML
+    public void eliminarReglaSeleccionada() {
+        ReglaMargen seleccionada = reglasTableView.getSelectionModel().getSelectedItem();
+        String id = seleccionada != null ? String.valueOf(seleccionada.getId()) : reglaIdField.getText();
+
+        if (id == null || id.isBlank()) {
+            ConsolaErroresDialog.mostrarError("Eliminar regla", "Selecciona una regla o indica un ID válido.");
+            return;
+        }
+
+        if (repoReglas.delete(id)) {
+            refrescarGestion();
+            refrescarGraficas();
+            ConsolaErroresDialog.mostrarInfo("Regla de margen", "Regla eliminada correctamente.");
+        } else {
+            ConsolaErroresDialog.mostrarError("Eliminar regla", "No se encontró la regla con ID " + id + ".");
+        }
+    }
+
+    @FXML
+    public void limpiarFormularioRegla() {
+        reglaIdField.clear();
+        reglaCategoriaField.clear();
+        reglaMargenField.clear();
+        reglaActivaCheckBox.setSelected(true);
+        reglaDescripcionTextArea.clear();
+        reglasTableView.getSelectionModel().clearSelection();
+    }
+
     // ==================== MÉTODOS CRUD ORIGINALES ====================
 
     public void cargarDatos() {
@@ -390,6 +629,100 @@ public class RentabilidadController {
         System.out.println("Regla de margen actualizada correctamente.");
     }
 
+    private void cargarZonaEnFormulario(ZonaComercial zona) {
+        if (zona == null) {
+            return;
+        }
+        zonaIdField.setText(valorSeguro(zona.getId()));
+        zonaNombreField.setText(valorSeguro(zona.getNombre()));
+        zonaPaisField.setText(valorSeguro(zona.getPais()));
+        zonaResponsableField.setText(valorSeguro(zona.getResponsableComercial()));
+        zonaObjetivoField.setText(BigDecimal.valueOf(zona.getObjetivoFacturacionAnual()).stripTrailingZeros().toPlainString());
+    }
+
+    private void cargarReglaEnFormulario(ReglaMargen regla) {
+        if (regla == null) {
+            return;
+        }
+        reglaIdField.setText(valorSeguro(regla.getId()));
+        reglaCategoriaField.setText(valorSeguro(regla.getCategoriaProductoAfectada()));
+        reglaMargenField.setText(BigDecimal.valueOf(regla.getMargenMinimoPortcentaje()).stripTrailingZeros().toPlainString());
+        reglaActivaCheckBox.setSelected(regla.isActiva());
+        reglaDescripcionTextArea.setText(valorSeguro(regla.getDescripcion()));
+    }
+
+    private void cargarGraficaCategorias() {
+        categoriasBarChart.getData().clear();
+
+        Map<String, BigDecimal> rankingFacturacion = calculadora.generarRankCategoriasPorFacturacion();
+        Map<String, BigDecimal> rankingMargen = calculadora.generarRankCategorias();
+
+        XYSeriesLoader.loadBarSeries(categoriasBarChart, "Facturación", rankingFacturacion, 8);
+        XYSeriesLoader.loadBarSeries(categoriasBarChart, "Margen bruto", rankingMargen, 8);
+    }
+
+    private void cargarGraficaMensual() {
+        kpisMensualesLineChart.getData().clear();
+
+        Map<String, BigDecimal> facturacionMensual = new ImportKpiController().calcularKPIMensualFacturacion(null);
+        Map<String, BigDecimal> margenMensual = new ImportKpiController().calcularKPIMensualMargen(null);
+
+        XYSeriesLoader.loadLineSeries(kpisMensualesLineChart, "Facturación mensual", facturacionMensual);
+        XYSeriesLoader.loadLineSeries(kpisMensualesLineChart, "Margen mensual", margenMensual);
+    }
+
+    private void cargarGraficaZonas() {
+        zonasPieChart.getData().clear();
+
+        List<Map<String, Object>> rankingZonas = calculadora.generarRankingZonasPorDesviacion();
+        List<PieChart.Data> data = new ArrayList<>();
+
+        for (Map<String, Object> zona : rankingZonas) {
+            BigDecimal real = toBigDecimal(zona.get("real"));
+            if (real.compareTo(BigDecimal.ZERO) > 0) {
+                data.add(new PieChart.Data(String.valueOf(zona.getOrDefault("nombre", "Zona")), real.doubleValue()));
+            }
+        }
+
+        zonasPieChart.setData(FXCollections.observableArrayList(data));
+    }
+
+    private Integer leerEntero(String texto, Integer valorPorDefecto) {
+        if (texto == null || texto.trim().isEmpty()) {
+            return valorPorDefecto;
+        }
+        return Integer.valueOf(texto.trim());
+    }
+
+    private double leerDouble(String texto, double valorPorDefecto) {
+        if (texto == null || texto.trim().isEmpty()) {
+            return valorPorDefecto;
+        }
+        return Double.parseDouble(texto.trim());
+    }
+
+    private Integer siguienteIdZona() {
+        return repoZonas.findAll().stream()
+            .map(ZonaComercial::getId)
+            .filter(id -> id != null)
+            .max(Integer::compareTo)
+            .map(id -> id + 1)
+            .orElse(1);
+    }
+
+    private Integer siguienteIdRegla() {
+        return repoReglas.findAll().stream()
+            .map(ReglaMargen::getId)
+            .filter(id -> id != null)
+            .max(Integer::compareTo)
+            .map(id -> id + 1)
+            .orElse(1);
+    }
+
+    private String valorSeguro(Object valor) {
+        return valor == null ? "" : String.valueOf(valor);
+    }
+
     private Integer toInteger(Object valor) {
         if (valor instanceof Number number) {
             return number.intValue();
@@ -483,6 +816,42 @@ public class RentabilidadController {
         public BigDecimal getReal() { return real; }
         public BigDecimal getDesviacion() { return desviacion; }
         public BigDecimal getPorcentaje() { return porcentaje; }
+    }
+
+    private static final class XYSeriesLoader {
+        private static void loadBarSeries(BarChart<String, Number> chart, String nombreSerie, Map<String, BigDecimal> valores, int maxElementos) {
+            if (chart == null || valores == null || valores.isEmpty()) {
+                return;
+            }
+
+            javafx.scene.chart.XYChart.Series<String, Number> series = new javafx.scene.chart.XYChart.Series<>();
+            series.setName(nombreSerie);
+
+            int contador = 0;
+            for (Map.Entry<String, BigDecimal> entrada : valores.entrySet()) {
+                if (contador++ >= maxElementos) {
+                    break;
+                }
+                series.getData().add(new javafx.scene.chart.XYChart.Data<>(entrada.getKey(), entrada.getValue()));
+            }
+
+            chart.getData().add(series);
+        }
+
+        private static void loadLineSeries(LineChart<String, Number> chart, String nombreSerie, Map<String, BigDecimal> valores) {
+            if (chart == null || valores == null || valores.isEmpty()) {
+                return;
+            }
+
+            javafx.scene.chart.XYChart.Series<String, Number> series = new javafx.scene.chart.XYChart.Series<>();
+            series.setName(nombreSerie);
+
+            for (Map.Entry<String, BigDecimal> entrada : valores.entrySet()) {
+                series.getData().add(new javafx.scene.chart.XYChart.Data<>(entrada.getKey(), entrada.getValue()));
+            }
+
+            chart.getData().add(series);
+        }
     }
 
 }

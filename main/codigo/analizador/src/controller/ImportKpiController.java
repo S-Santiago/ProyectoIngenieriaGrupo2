@@ -86,13 +86,22 @@ public class ImportKpiController {
             File selectedFile = fileChooser.showOpenDialog(stage);
             
             if (selectedFile != null) {
-                List<LineaPedido> lineasImportadas = csvImporter.importCSVLineaPedidos(selectedFile.getAbsolutePath());
+                CsvImporter.ImportResult<LineaPedido> resultadoImportacion = csvImporter.importCSVLineaPedidosConAvisos(selectedFile.getAbsolutePath());
+                List<LineaPedido> lineasImportadas = resultadoImportacion.getElementos();
                 exploradorController.setPedidos(lineasImportadas);
-                
-                ConsolaErroresDialog.mostrarInfo(
-                    "Importación Exitosa",
-                    "Se importaron correctamente " + lineasImportadas.size() + " líneas de pedido."
-                );
+
+                if (resultadoImportacion.tieneAvisos()) {
+                    ConsolaErroresDialog.mostrarAdvertencia(
+                        "Líneas del CSV no importadas",
+                        "Se importaron correctamente " + lineasImportadas.size() + " líneas válidas, pero estas filas no se pudieron cargar:\n\n"
+                            + String.join("\n", resultadoImportacion.getAvisos())
+                    );
+                } else {
+                    ConsolaErroresDialog.mostrarInfo(
+                        "Importación exitosa",
+                        "Se importaron correctamente " + lineasImportadas.size() + " líneas de pedido."
+                    );
+                }
                 
                 refrescarKpis();
             }

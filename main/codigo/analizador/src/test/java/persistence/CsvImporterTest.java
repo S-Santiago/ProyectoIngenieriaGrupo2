@@ -23,11 +23,14 @@ class CsvImporterTest {
                 "2,101,PROD-2,Producto invalido,Electrónica,0,20.00,2,2025-01-15,1,completado"));
 
         CsvImporter importer = new CsvImporter();
-        List<LineaPedido> lineas = importer.importCSVLineaPedidos(tempFile.toString());
+        CsvImporter.ImportResult<LineaPedido> resultado = importer.importCSVLineaPedidosConAvisos(tempFile.toString());
+        List<LineaPedido> lineas = resultado.getElementos();
 
         assertEquals(1, lineas.size());
         assertEquals("2025-01-15", lineas.get(0).getFechaPedido());
         assertTrue(lineas.get(0).getCosteUnitario().compareTo(java.math.BigDecimal.ZERO) > 0);
         assertFalse(lineas.get(0).getPrecioVentaUnitario().compareTo(java.math.BigDecimal.ZERO) <= 0);
+        assertEquals(1, resultado.getAvisos().size());
+        assertTrue(resultado.getAvisos().get(0).contains("Fila 3"));
     }
 }

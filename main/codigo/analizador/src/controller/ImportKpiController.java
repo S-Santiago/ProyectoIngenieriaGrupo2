@@ -25,6 +25,8 @@ import persistence.ExcelExporter;
 import view.ConsolaErroresDialog;
 
 public class ImportKpiController {
+    private static final String OPCION_TODAS = "Todas";
+
     private final ExploradorController exploradorController = ExploradorController.getInstance();
     private final CalculadoraFinanciera calculadora = new CalculadoraFinanciera();
     private final CsvImporter csvImporter = new CsvImporter();
@@ -240,6 +242,18 @@ public class ImportKpiController {
         return kpiMensual;
     }
 
+    public Map<String, BigDecimal> calcularKPIMensualFacturacion(String tipoFiltro, String opcion) {
+        List<LineaPedido> lineaPedidosFiltrado = filtrarPedidos(tipoFiltro, opcion);
+        Map<String, BigDecimal> kpiMensual = new TreeMap<>();
+        for (LineaPedido p : lineaPedidosFiltrado) {
+            LocalDate fechaDePedido = parseFechaPedidoSeguro(p.getFechaPedido());
+            String mesKey = fechaDePedido.format(DateTimeFormatter.ofPattern("uuuu-MM"));
+            BigDecimal facturacion = valorMonetario(p.getPrecioVentaUnitario(), p.getUnidades());
+            kpiMensual.merge(mesKey, facturacion, BigDecimal::add);
+        }
+        return kpiMensual;
+    }
+
     public Map<String,BigDecimal> calcularKPIMensualMargen(String opcion){
         List<LineaPedido> lineaPedidosFiltrado=filtrarPedidos(opcion);
         Map<String,BigDecimal> kpiMensual=new TreeMap<>();
@@ -253,11 +267,46 @@ public class ImportKpiController {
         return kpiMensual;
     }
 
+    public Map<String, BigDecimal> calcularKPIMensualMargen(String tipoFiltro, String opcion) {
+        List<LineaPedido> lineaPedidosFiltrado = filtrarPedidos(tipoFiltro, opcion);
+        Map<String, BigDecimal> kpiMensual = new TreeMap<>();
+        for (LineaPedido p : lineaPedidosFiltrado) {
+            LocalDate fechaDePedido = parseFechaPedidoSeguro(p.getFechaPedido());
+            String mesKey = fechaDePedido.format(DateTimeFormatter.ofPattern("uuuu-MM"));
+            BigDecimal margen = valorMonetario(p.getPrecioVentaUnitario(), p.getUnidades())
+                    .subtract(valorMonetario(p.getCosteUnitario(), p.getUnidades()));
+            kpiMensual.merge(mesKey, margen, BigDecimal::add);
+        }
+        return kpiMensual;
+    }
+
     private List<LineaPedido> filtrarPedidos(String opcion) {
         if (opcion == null || opcion.isBlank()) {
             return exploradorController.getPedidos();
         }
         return exploradorController.filtrarPorCategoria(opcion);
+    }
+
+    private List<LineaPedido> filtrarPedidos(String tipoFiltro, String opcion) {
+        if (opcion == null || opcion.isBlank() || OPCION_TODAS.equalsIgnoreCase(opcion.trim())) {
+            return exploradorController.getPedidos();
+        }
+
+        if (tipoFiltro == null || tipoFiltro.isBlank()) {
+            return filtrarPedidos(opcion);
+        }
+
+        return switch (tipoFiltro.trim().toLowerCase()) {
+            case "categoría", "categoria" -> exploradorController.filtrarPorCategoria(opcion.trim());
+            case "zona comercial", "zonacomercial" -> {
+                try {
+                    yield exploradorController.filtrarPorZonaComercial(Integer.parseInt(opcion.trim()));
+                } catch (NumberFormatException exception) {
+                    yield List.of();
+                }
+            }
+            default -> filtrarPedidos(opcion);
+        };
     }
 
     private LocalDate parseFechaPedidoSeguro(String fechaPedido) {

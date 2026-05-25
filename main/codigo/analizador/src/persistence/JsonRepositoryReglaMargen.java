@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +21,7 @@ public class JsonRepositoryReglaMargen {
 
     public JsonRepositoryReglaMargen() {
         this.reglas = cargarDesdeFichero();
+        ordenarPorId();
     }
 
     // CRUD 
@@ -94,10 +96,15 @@ public class JsonRepositoryReglaMargen {
     private void guardarEnFichero() {
         try {
             Files.createDirectories(DATA_DIRECTORY);
+            ordenarPorId();
             mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), reglas);
         } catch (IOException e) {
             System.err.println("Error al guardar reglas.json: " + e.getMessage());
         }
+    }
+
+    private void ordenarPorId() {
+        reglas.sort(Comparator.comparing(ReglaMargen::getId));
     }
 
     private Integer parseId(String id) {

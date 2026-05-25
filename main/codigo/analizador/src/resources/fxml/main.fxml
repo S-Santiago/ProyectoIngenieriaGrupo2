@@ -17,7 +17,7 @@
             <HBox styleClass="nav-bar">
                <children>
                   <Button fx:id="btnExploradorPedidos" text="🔍 Explorador de pedidos" onAction="#navegarExploradorPedidos" styleClass="nav-button" />
-                  <Button fx:id="btnImportacionKpis" text="📥 Importación y kpis" onAction="#navegarImportacionKpis" styleClass="nav-button" />
+                  <Button fx:id="btnImportacionKpis" text="📥 Importación y KPIs" onAction="#navegarImportacionKpis" styleClass="nav-button" />
                   <Button fx:id="btnRentabilidad" text="💰 Gestión comercial" onAction="#navegarRentabilidad" styleClass="nav-button" />
                   
                   <!-- Este Region actúa como un muelle que empuja el botón de Salir a la derecha -->

@@ -1,6 +1,6 @@
-id,categoriaProductoAfectada,margenMinimoPortcentaje,activa,descripcion
-1,Electrónica,35.0,true,"Margen mínimo para productos electrónicos de alto valor"
-2,Accesorios,60.0,true,"Margen mínimo para accesorios y periféricos"
-3,Audio,68.0,true,"Margen mínimo para productos de audio"
-4,Almacenamiento,65.0,true,"Margen mínimo para almacenamiento y memoria"
-5,Software,50.0,false,"Margen mínimo para software - actualmente desactivada"
+idRegla,nombre,descripcion,margenMinimo,margenObjetivo,zonaId,activo
+1,MargenGeneral,Aplicar margen mínimo por defecto,0.10,0.20,0,si
+2,ElectronicaPromo,Margen reducido para promociones de electrónica,0.07,0.14,1,si
+3,AccesoriosPremium,Márgenes para accesorios premium,0.15,0.30,0,si
+4,DescuentoZona3,Promociones especiales para Zona 3,0.05,0.12,3,si
+5,CampañaPrimavera,Regla temporal para campaña de primavera,0.06,0.13,0,si

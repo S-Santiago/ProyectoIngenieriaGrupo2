@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.time.format.ResolverStyle;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import model.EstadoPedido;
@@ -107,6 +108,7 @@ public class CsvImporter {
             System.out.println("Número total de líneas procesadas: " + contadorLineas);
             System.out.println("Número total de líneas importadas: " + lineasPedido.size());
         }
+        lineasPedido.sort(Comparator.comparing(LineaPedido::getIdLinea));
         return new ImportResult<>(lineasPedido, avisos);
     }
 
@@ -147,6 +149,7 @@ public class CsvImporter {
         }
         System.out.println("Número total de líneas procesadas: " + contadorLineas);
         System.out.println("Número total de zonas importadas: " + zonas.size());
+        zonas.sort(Comparator.comparing(ZonaComercial::getId));
         return zonas;
     }
 
@@ -187,6 +190,7 @@ public class CsvImporter {
         }
         System.out.println("Número total de líneas procesadas: " + contadorLineas);
         System.out.println("Número total de reglas importadas: " + reglas.size());
+        reglas.sort(Comparator.comparing(ReglaMargen::getId));
         return reglas;
     }
 

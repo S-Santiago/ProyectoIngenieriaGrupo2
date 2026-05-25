@@ -24,8 +24,20 @@
   "descripcion" : "Margen mínimo para almacenamiento y memoria"
 }, {
   "id" : 5,
-  "categoriaProductoAfectada" : "Software",
-  "margenMinimoPortcentaje" : 50.0,
+  "categoriaProductoAfectada" : "Categoria A",
+  "margenMinimoPortcentaje" : 10.0,
+  "activa" : true,
+  "descripcion" : "Regla A"
+}, {
+  "id" : 12,
+  "categoriaProductoAfectada" : "Categoria B",
+  "margenMinimoPortcentaje" : 20.0,
   "activa" : false,
-  "descripcion" : "Margen mínimo para software - actualmente desactivada"
+  "descripcion" : "Regla B"
+}, {
+  "id" : 20,
+  "categoriaProductoAfectada" : "Categoria C",
+  "margenMinimoPortcentaje" : 30.0,
+  "activa" : true,
+  "descripcion" : "Regla C"
 } ]

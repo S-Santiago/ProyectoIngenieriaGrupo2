@@ -1,6 +1,6 @@
-id,nombre,pais,responsableComercial,objetivoFacturacionAnual
-1,Zona Ibérica,España,"Juan García López",500000.0
-2,Zona Europa Central,Francia,"Marie Dubois",750000.0
-3,Zona América Latina,México,"Carlos Rodríguez Martínez",600000.0
-4,Zona Asia Pacífico,Singapur,"David Chen",1000000.0
-5,Zona Europa del Este,Polonia,"Anna Kowalski",400000.0
+idZona,nombre,descripcion
+1,Zona Norte,Zona comercial Norte
+2,Zona Centro,Zona comercial Centro
+3,Zona Sur,Zona comercial Sur
+4,Zona Este,Zona comercial Este
+5,Zona Oeste,Zona comercial Oeste

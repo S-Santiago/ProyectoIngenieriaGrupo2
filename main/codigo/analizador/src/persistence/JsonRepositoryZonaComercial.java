@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +21,7 @@ public class JsonRepositoryZonaComercial {
 
     public JsonRepositoryZonaComercial() {
         this.zonasComerciales = cargarDesdeFichero();
+        ordenarPorId();
     }
 
     //CRUD 
@@ -55,7 +57,7 @@ public class JsonRepositoryZonaComercial {
         }
         
         // Si ya existe, la reemplaza; si no, la añade
-        zonasComerciales.removeIf(z -> zona.getId().equals(z.getId()));
+        zonasComerciales.removeIf(z -> z.getId().equals(zona.getId()));
         zonasComerciales.add(zona);
         guardarEnFichero();
     }
@@ -85,7 +87,14 @@ public class JsonRepositoryZonaComercial {
         }
 
         try {
-            return mapper.readValue(FILE_PATH.toFile(), new TypeReference<List<ZonaComercial>>() {});
+            List<ZonaComercial> leidas = mapper.readValue(FILE_PATH.toFile(), new TypeReference<List<ZonaComercial>>() {});
+            // Eliminar duplicados por ID manteniendo el primero encontrado
+            java.util.Map<Integer, ZonaComercial> porId = new java.util.LinkedHashMap<>();
+            for (ZonaComercial z : leidas) {
+                if (z == null || z.getId() == null) continue;
+                porId.putIfAbsent(z.getId(), z);
+            }
+            return new ArrayList<>(porId.values());
         } catch (IOException e) {
             System.err.println("Error al leer zonas.json: " + e.getMessage());
             return new ArrayList<>();
@@ -95,10 +104,15 @@ public class JsonRepositoryZonaComercial {
     private void guardarEnFichero() {
         try {
             Files.createDirectories(DATA_DIRECTORY);
+            ordenarPorId();
             mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), zonasComerciales);
         } catch (IOException e) {
             System.err.println("Error al guardar zonas.json: " + e.getMessage());
         }
+    }
+
+    private void ordenarPorId() {
+        zonasComerciales.sort(Comparator.comparing(ZonaComercial::getId));
     }
 
     private Integer parseId(String id) {

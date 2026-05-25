@@ -30,6 +30,19 @@ public class NavigationController {
     public void initialize() {
         // Cargar la primera vista por defecto
         navegarExploradorPedidos();
+        aplicarSesion(SesionAplicacion.obtener());
+    }
+
+    public void aplicarSesion(SesionUsuario sesion) {
+        if (btnImportacionKpis == null || btnRentabilidad == null) {
+            return;
+        }
+
+        boolean esComercial = sesion != null && sesion.esComercial();
+        btnImportacionKpis.setVisible(!esComercial);
+        btnImportacionKpis.setManaged(!esComercial);
+        btnRentabilidad.setVisible(true);
+        btnRentabilidad.setManaged(true);
     }
 
     @FXML
@@ -39,6 +52,10 @@ public class NavigationController {
 
     @FXML
     public void navegarImportacionKpis() {
+        SesionUsuario sesion = SesionAplicacion.obtener();
+        if (sesion != null && sesion.esComercial()) {
+            return;
+        }
         cargarVista("/fxml/importacion_kpis.fxml", new ImportKpiController());
     }
 

@@ -1,31 +1,43 @@
 [ {
   "id" : 1,
-  "nombre" : "Zona Ibérica",
+  "nombre" : "Zona Norte",
   "pais" : "España",
   "responsableComercial" : "Juan García López",
   "objetivoFacturacionAnual" : 500000.0
 }, {
   "id" : 2,
-  "nombre" : "Zona Europa Central",
+  "nombre" : "Zona Centro",
   "pais" : "Francia",
   "responsableComercial" : "Marie Dubois",
   "objetivoFacturacionAnual" : 750000.0
 }, {
   "id" : 3,
-  "nombre" : "Zona América Latina",
+  "nombre" : "Zona Sur",
   "pais" : "México",
   "responsableComercial" : "Carlos Rodríguez Martínez",
   "objetivoFacturacionAnual" : 600000.0
 }, {
   "id" : 4,
-  "nombre" : "Zona Asia Pacífico",
+  "nombre" : "Zona Este",
   "pais" : "Singapur",
   "responsableComercial" : "David Chen",
   "objetivoFacturacionAnual" : 1000000.0
 }, {
   "id" : 5,
-  "nombre" : "Zona Europa del Este",
-  "pais" : "Polonia",
-  "responsableComercial" : "Anna Kowalski",
-  "objetivoFacturacionAnual" : 400000.0
+  "nombre" : "Zona A",
+  "pais" : "España",
+  "responsableComercial" : "Responsable A",
+  "objetivoFacturacionAnual" : 1000.0
+}, {
+  "id" : 12,
+  "nombre" : "Zona B",
+  "pais" : "España",
+  "responsableComercial" : "Responsable B",
+  "objetivoFacturacionAnual" : 2000.0
+}, {
+  "id" : 20,
+  "nombre" : "Zona C",
+  "pais" : "España",
+  "responsableComercial" : "Responsable C",
+  "objetivoFacturacionAnual" : 3000.0
 } ]

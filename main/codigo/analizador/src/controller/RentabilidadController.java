@@ -16,13 +16,17 @@ import javafx.fxml.FXML;
 import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.PieChart;
+import javafx.scene.chart.StackedBarChart;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import model.ReglaMargen;
@@ -139,7 +143,18 @@ public class RentabilidadController {
     @FXML
     private LineChart<String, Number> kpisMensualesLineChart;
     @FXML
+    private StackedBarChart<String, Number> stackedBarChartMensual;
+    @FXML
+    private PieChart margenCategoriasPieChart;
+    @FXML
     private PieChart zonasPieChart;
+
+    @FXML
+    private TabPane panelPrincipal;
+    @FXML
+    private Tab tabGestion;
+    @FXML
+    private HBox accionesPrincipalesBox;
 
     private final ObservableList<ZonaComercial> zonasItems = FXCollections.observableArrayList();
     private final ObservableList<ReglaMargen> reglasItems = FXCollections.observableArrayList();
@@ -147,12 +162,48 @@ public class RentabilidadController {
     @FXML
     public void initialize() {
         cargarDatos();
+
         configurarTablas();
         configurarGestion();
         configurarGraficas();
+        aplicarSesion(SesionAplicacion.obtener());
         refrescarPanel();
-        refrescarGestion();
         refrescarGraficas();
+
+        if (accesoFinancieroPermitido()) {
+            refrescarGestion();
+        }
+    }
+
+    boolean accesoFinancieroPermitido() {
+        SesionUsuario sesion = SesionAplicacion.obtener();
+        return sesion == null || !sesion.esComercial();
+    }
+
+    public void aplicarSesion(SesionUsuario sesion) {
+        if (sesion != null && sesion.esComercial()) {
+            if (tabGestion != null) {
+                tabGestion.setDisable(true);
+            }
+            exploradorController.aplicarSesion(sesion);
+        } else {
+            if (tabGestion != null) {
+                tabGestion.setDisable(false);
+            }
+            exploradorController.desbloquearFiltroComercial();
+        }
+    }
+
+    private boolean exigirAccesoFinanciero(String accion) {
+        if (accesoFinancieroPermitido()) {
+            return true;
+        }
+
+        ConsolaErroresDialog.mostrarError(
+            "Acceso denegado",
+            "El rol comercial no puede " + accion + "."
+        );
+        return false;
     }
 
     private void configurarTablas() {
@@ -213,6 +264,14 @@ public class RentabilidadController {
     private void configurarGraficas() {
         categoriasBarChart.setAnimated(false);
         kpisMensualesLineChart.setAnimated(false);
+        if (stackedBarChartMensual != null) {
+            stackedBarChartMensual.setAnimated(false);
+            stackedBarChartMensual.setLegendVisible(true);
+        }
+        if (margenCategoriasPieChart != null) {
+            margenCategoriasPieChart.setLabelsVisible(true);
+            margenCategoriasPieChart.setLegendVisible(true);
+        }
         zonasPieChart.setLabelsVisible(true);
         zonasPieChart.setLegendVisible(true);
     }
@@ -233,6 +292,10 @@ public class RentabilidadController {
 
     @FXML
     public void refrescarGestion() {
+        if (!accesoFinancieroPermitido()) {
+            return;
+        }
+
         try {
             zonasItems.setAll(repoZonas.findAll());
             reglasItems.setAll(repoReglas.findAll());
@@ -253,6 +316,8 @@ public class RentabilidadController {
         try {
             cargarGraficaCategorias();
             cargarGraficaMensual();
+            cargarGraficaMensualApilada();
+            cargarGraficaMargenPorCategoria();
             cargarGraficaZonas();
         } catch (Exception e) {
             ConsolaErroresDialog.mostrarError(
@@ -388,9 +453,10 @@ public class RentabilidadController {
             File selectedFile = fileChooser.showSaveDialog(stage);
             
             if (selectedFile != null) {
-                excelExporter.exportLineasPedido(
+                excelExporter.exportAnalisisRentabilidad(
                     selectedFile.getAbsolutePath(),
-                    exploradorController.getPedidos()
+                    obtenerRankingCategoriasParaExportar(),
+                    obtenerLineasBajoMargenParaExportar()
                 );
                 
                 ConsolaErroresDialog.mostrarInfo(
@@ -408,6 +474,10 @@ public class RentabilidadController {
 
     @FXML
     public void guardarZonaDesdeFormulario() {
+        if (!exigirAccesoFinanciero("crear o actualizar zonas comerciales")) {
+            return;
+        }
+
         try {
             Integer id = leerEntero(zonaIdField.getText(), siguienteIdZona());
             String nombre = zonaNombreField.getText() == null ? "" : zonaNombreField.getText().trim();
@@ -431,6 +501,10 @@ public class RentabilidadController {
 
     @FXML
     public void eliminarZonaSeleccionada() {
+        if (!exigirAccesoFinanciero("eliminar zonas comerciales")) {
+            return;
+        }
+
         ZonaComercial seleccionada = zonasTableView.getSelectionModel().getSelectedItem();
         String id = seleccionada != null ? String.valueOf(seleccionada.getId()) : zonaIdField.getText();
 
@@ -450,6 +524,10 @@ public class RentabilidadController {
 
     @FXML
     public void limpiarFormularioZona() {
+        if (!accesoFinancieroPermitido()) {
+            return;
+        }
+
         zonaIdField.clear();
         zonaNombreField.clear();
         zonaPaisField.clear();
@@ -460,6 +538,10 @@ public class RentabilidadController {
 
     @FXML
     public void guardarReglaDesdeFormulario() {
+        if (!exigirAccesoFinanciero("crear o actualizar reglas de margen")) {
+            return;
+        }
+
         try {
             Integer id = leerEntero(reglaIdField.getText(), siguienteIdRegla());
             String categoria = reglaCategoriaField.getText() == null ? "" : reglaCategoriaField.getText().trim();
@@ -483,6 +565,10 @@ public class RentabilidadController {
 
     @FXML
     public void eliminarReglaSeleccionada() {
+        if (!exigirAccesoFinanciero("eliminar reglas de margen")) {
+            return;
+        }
+
         ReglaMargen seleccionada = reglasTableView.getSelectionModel().getSelectedItem();
         String id = seleccionada != null ? String.valueOf(seleccionada.getId()) : reglaIdField.getText();
 
@@ -502,6 +588,10 @@ public class RentabilidadController {
 
     @FXML
     public void limpiarFormularioRegla() {
+        if (!accesoFinancieroPermitido()) {
+            return;
+        }
+
         reglaIdField.clear();
         reglaCategoriaField.clear();
         reglaMargenField.clear();
@@ -664,11 +754,118 @@ public class RentabilidadController {
     private void cargarGraficaMensual() {
         kpisMensualesLineChart.getData().clear();
 
-        Map<String, BigDecimal> facturacionMensual = new ImportKpiController().calcularKPIMensualFacturacion(null);
-        Map<String, BigDecimal> margenMensual = new ImportKpiController().calcularKPIMensualMargen(null);
+        ImportKpiController importKpiController = new ImportKpiController();
+        String tipoFiltro = obtenerTipoFiltroGraficaMensual();
+        String valorFiltro = obtenerValorFiltroGraficaMensual();
+
+        Map<String, BigDecimal> facturacionMensual = tipoFiltro == null
+            ? importKpiController.calcularKPIMensualFacturacion(null)
+            : importKpiController.calcularKPIMensualFacturacion(tipoFiltro, valorFiltro);
+        Map<String, BigDecimal> margenMensual = tipoFiltro == null
+            ? importKpiController.calcularKPIMensualMargen(null)
+            : importKpiController.calcularKPIMensualMargen(tipoFiltro, valorFiltro);
 
         XYSeriesLoader.loadLineSeries(kpisMensualesLineChart, "Facturación mensual", facturacionMensual);
         XYSeriesLoader.loadLineSeries(kpisMensualesLineChart, "Margen mensual", margenMensual);
+    }
+
+    private void cargarGraficaMensualApilada() {
+        if (stackedBarChartMensual == null) return;
+        stackedBarChartMensual.getData().clear();
+
+        ImportKpiController importKpiController = new ImportKpiController();
+        String tipoFiltro = obtenerTipoFiltroGraficaMensual();
+        String valorFiltro = obtenerValorFiltroGraficaMensual();
+
+        Map<String, BigDecimal> facturacionMensual = tipoFiltro == null
+            ? importKpiController.calcularKPIMensualFacturacion(null)
+            : importKpiController.calcularKPIMensualFacturacion(tipoFiltro, valorFiltro);
+        Map<String, BigDecimal> margenMensual = tipoFiltro == null
+            ? importKpiController.calcularKPIMensualMargen(null)
+            : importKpiController.calcularKPIMensualMargen(tipoFiltro, valorFiltro);
+
+        javafx.scene.chart.XYChart.Series<String, Number> seriesFact = new javafx.scene.chart.XYChart.Series<>();
+        seriesFact.setName("Facturación");
+        javafx.scene.chart.XYChart.Series<String, Number> seriesMarg = new javafx.scene.chart.XYChart.Series<>();
+        seriesMarg.setName("Margen bruto");
+
+        java.time.YearMonth now = java.time.YearMonth.now();
+        java.util.List<String> meses = new java.util.ArrayList<>();
+        for (int i = 11; i >= 0; i--) {
+            java.time.YearMonth ym = now.minusMonths(i);
+            meses.add(ym.toString());
+        }
+
+        for (String mes : meses) {
+            double f = facturacionMensual.getOrDefault(mes, BigDecimal.ZERO).doubleValue();
+            double m = margenMensual.getOrDefault(mes, BigDecimal.ZERO).doubleValue();
+            seriesFact.getData().add(new javafx.scene.chart.XYChart.Data<>(mes, f));
+            seriesMarg.getData().add(new javafx.scene.chart.XYChart.Data<>(mes, m));
+        }
+
+        stackedBarChartMensual.getData().addAll(seriesFact, seriesMarg);
+    }
+
+    private String obtenerTipoFiltroGraficaMensual() {
+        SesionUsuario sesion = SesionAplicacion.obtener();
+        if (sesion != null && sesion.esComercial() && sesion.zonaComercial() != null) {
+            return "Zona Comercial";
+        }
+
+        String tipoFiltro = exploradorController.getTipoFiltroSeleccionado();
+        if (tipoFiltro == null || tipoFiltro.isBlank()) {
+            return null;
+        }
+
+        return switch (tipoFiltro.trim().toLowerCase()) {
+            case "categoría", "categoria", "zona comercial", "zonacomercial" -> tipoFiltro.trim();
+            default -> null;
+        };
+    }
+
+    private String obtenerValorFiltroGraficaMensual() {
+        SesionUsuario sesion = SesionAplicacion.obtener();
+        if (sesion != null && sesion.esComercial() && sesion.zonaComercial() != null) {
+            return String.valueOf(sesion.zonaComercial());
+        }
+
+        String valorFiltro = exploradorController.getValorFiltroSeleccionado();
+        if (valorFiltro == null || valorFiltro.isBlank() || "Todas".equalsIgnoreCase(valorFiltro.trim())) {
+            return null;
+        }
+
+        return valorFiltro.trim();
+    }
+
+    private List<ExcelExporter.RankingCategoriaExportRow> obtenerRankingCategoriasParaExportar() {
+        if (rankingCategoriasTableView == null || rankingCategoriasTableView.getItems() == null) {
+            return List.of();
+        }
+
+        return rankingCategoriasTableView.getItems().stream()
+                .map(fila -> new ExcelExporter.RankingCategoriaExportRow(
+                        fila.getPosicion(),
+                        fila.getCategoria(),
+                        fila.getFacturacion(),
+                        fila.getMargen(),
+                        fila.getMargenPorcentaje()))
+                .toList();
+    }
+
+    private List<ExcelExporter.LineaBajoMargenExportRow> obtenerLineasBajoMargenParaExportar() {
+        if (lineasBajoMargenTableView == null || lineasBajoMargenTableView.getItems() == null) {
+            return List.of();
+        }
+
+        return lineasBajoMargenTableView.getItems().stream()
+                .map(fila -> new ExcelExporter.LineaBajoMargenExportRow(
+                        fila.getIdLinea(),
+                        fila.getProducto(),
+                        fila.getCategoria(),
+                        fila.getMargenActual(),
+                        fila.getMargenRequerido(),
+                        fila.getDeficiencia()))
+                .toList();
     }
 
     private void cargarGraficaZonas() {
@@ -685,6 +882,23 @@ public class RentabilidadController {
         }
 
         zonasPieChart.setData(FXCollections.observableArrayList(data));
+    }
+
+    private void cargarGraficaMargenPorCategoria() {
+        if (margenCategoriasPieChart == null) return;
+        margenCategoriasPieChart.getData().clear();
+
+        Map<String, BigDecimal> rankingMargen = calculadora.generarRankCategorias();
+        List<PieChart.Data> data = new ArrayList<>();
+
+        for (Map.Entry<String, BigDecimal> e : rankingMargen.entrySet()) {
+            BigDecimal val = e.getValue();
+            if (val != null && val.compareTo(BigDecimal.ZERO) > 0) {
+                data.add(new PieChart.Data(e.getKey(), val.doubleValue()));
+            }
+        }
+
+        margenCategoriasPieChart.setData(FXCollections.observableArrayList(data));
     }
 
     private Integer leerEntero(String texto, Integer valorPorDefecto) {

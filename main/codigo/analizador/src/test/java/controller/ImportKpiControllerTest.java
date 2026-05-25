@@ -38,4 +38,25 @@ class ImportKpiControllerTest {
         assertEquals(new BigDecimal("20.00"), margen.get("2025-01"));
         assertEquals(new BigDecimal("36.00"), margen.get("2026-01"));
     }
+
+        @Test
+        void calculaKpiMensualFiltrandoPorZonaComercial() {
+                ExploradorController exploradorController = ExploradorController.getInstance();
+                exploradorController.setPedidos(List.of(
+                                new LineaPedido(10, 200, "PROD-10", "Producto 10", "Electrónica",
+                                                new BigDecimal("8.00"), new BigDecimal("18.00"), 1, "2025-02-15", 2, EstadoPedido.COMPLETADO),
+                                new LineaPedido(11, 201, "PROD-11", "Producto 11", "Hogar",
+                                                new BigDecimal("6.00"), new BigDecimal("16.00"), 4, "2025-02-20", 3, EstadoPedido.COMPLETADO)));
+
+                ImportKpiController controller = new ImportKpiController();
+
+                Map<String, BigDecimal> facturacion = controller.calcularKPIMensualFacturacion("Zona Comercial", "2");
+                Map<String, BigDecimal> margen = controller.calcularKPIMensualMargen("Zona Comercial", "2");
+
+                assertEquals(1, facturacion.size());
+                assertEquals(new BigDecimal("18.00"), facturacion.get("2025-02"));
+
+                assertEquals(1, margen.size());
+                assertEquals(new BigDecimal("10.00"), margen.get("2025-02"));
+        }
 }

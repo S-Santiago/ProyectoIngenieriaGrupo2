@@ -3,6 +3,7 @@
 <?import javafx.scene.chart.BarChart?>
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.StackedBarChart?>
 <?import javafx.scene.chart.NumberAxis?>
 <?import javafx.scene.chart.PieChart?>
 <?import javafx.scene.control.Button?>
@@ -35,7 +36,7 @@
                </children>
             </HBox>
 
-            <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+            <TabPane fx:id="tabPane" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
                <tabs>
                   <Tab text="Análisis">
                      <content>
@@ -108,7 +109,7 @@
                      </content>
                   </Tab>
 
-                  <Tab text="Gestión">
+                  <Tab fx:id="tabGestion" text="Gestión">
                      <content>
                         <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true" VBox.vgrow="ALWAYS" styleClass="scroll-container" stylesheets="@styles.css">
                            <content>
@@ -222,6 +223,20 @@
                                              <children>
                                                 <Label text="Facturación real por zona" styleClass="section-title" />
                                                 <PieChart fx:id="zonasPieChart" prefHeight="300.0" />
+                                             </children>
+                                          </VBox>
+
+                                          <VBox spacing="8.0" styleClass="chart-card" HBox.hgrow="ALWAYS">
+                                             <children>
+                                                <Label text="Facturación vs Margen (últimos 12 meses)" styleClass="section-title" />
+                                                <StackedBarChart fx:id="stackedBarChartMensual" prefHeight="300.0" animated="false" legendVisible="true">
+                                                   <xAxis>
+                                                      <CategoryAxis label="Mes" />
+                                                   </xAxis>
+                                                   <yAxis>
+                                                      <NumberAxis label="Importe" />
+                                                   </yAxis>
+                                                </StackedBarChart>
                                              </children>
                                           </VBox>
                                        </children>

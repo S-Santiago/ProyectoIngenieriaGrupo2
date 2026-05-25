@@ -1,37 +1,48 @@
 [
   {
-    "id": 1,
-    "categoriaProductoAfectada": "Electrónica",
-    "margenMinimoPortcentaje": 35.0,
-    "activa": true,
-    "descripcion": "Margen mínimo para productos electrónicos de alto valor"
+    "idRegla": 1,
+    "nombre": "MargenGeneral",
+    "descripcion": "Aplicar margen mínimo por defecto",
+    "margenMinimo": 0.10,
+    "margenObjetivo": 0.20,
+    "zonaId": 0,
+    "activo": true
   },
   {
-    "id": 2,
-    "categoriaProductoAfectada": "Accesorios",
-    "margenMinimoPortcentaje": 60.0,
-    "activa": true,
-    "descripcion": "Margen mínimo para accesorios y periféricos"
+    "idRegla": 2,
+    "nombre": "ElectronicaPromo",
+    "descripcion": "Margen reducido para promociones de electrónica",
+    "margenMinimo": 0.07,
+    "margenObjetivo": 0.14,
+    "zonaId": 1,
+    "activo": true
   },
   {
-    "id": 3,
-    "categoriaProductoAfectada": "Audio",
-    "margenMinimoPortcentaje": 68.0,
-    "activa": true,
-    "descripcion": "Margen mínimo para productos de audio"
+    "idRegla": 3,
+    "nombre": "AccesoriosPremium",
+    "descripcion": "Márgenes para accesorios premium",
+    "margenMinimo": 0.15,
+    "margenObjetivo": 0.30,
+    "zonaId": 0,
+    "activo": true
   },
   {
-    "id": 4,
-    "categoriaProductoAfectada": "Almacenamiento",
-    "margenMinimoPortcentaje": 65.0,
-    "activa": true,
-    "descripcion": "Margen mínimo para almacenamiento y memoria"
-  },
+    "idRegla": 4,
+    "nombre": "DescuentoZona3",
+    "descripcion": "Promociones especiales para Zona 3",
+    "margenMinimo": 0.05,
+    "margenObjetivo": 0.12,
+    "zonaId": 3,
+    "activo": true
+  }
+  ,
   {
-    "id": 5,
-    "categoriaProductoAfectada": "Software",
-    "margenMinimoPortcentaje": 50.0,
-    "activa": false,
-    "descripcion": "Margen mínimo para software - actualmente desactivada"
+    "idRegla": 5,
+    "nombre": "CampañaPrimavera",
+    "descripcion": "Regla temporal para campaña de primavera",
+    "margenMinimo": 0.06,
+    "margenObjetivo": 0.13,
+    "zonaId": 0,
+    "activo": true
   }
 ]

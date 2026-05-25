@@ -38,7 +38,7 @@ public class CalculadoraFinanciera {
     // Método para calcular el margen bruto total de todos los pedidos
     public BigDecimal calcularMargenBrutoTotal() {
         BigDecimal margenBrutoTotal = BigDecimal.ZERO;
-        List<LineaPedido> pedidos = exploradorController.getPedidos();
+        List<LineaPedido> pedidos = obtenerPedidosParaSesion();
         margenBrutoPedidos.clear();
         porcentajeMargenBrutoPedidos.clear();
         if (pedidos == null || pedidos.isEmpty()) {
@@ -61,7 +61,7 @@ public class CalculadoraFinanciera {
     // Ranking por Margen (Margen Bruto)
     public Map<String, BigDecimal> generarRankCategorias() {
         Map<String, BigDecimal> ranking = new HashMap<>();
-        List<LineaPedido> pedidos = exploradorController.getPedidos();
+        List<LineaPedido> pedidos = obtenerPedidosParaSesion();
         if (pedidos == null || pedidos.isEmpty()) {
             return new LinkedHashMap<>();
         }
@@ -79,7 +79,7 @@ public class CalculadoraFinanciera {
     // Ranking por Factuación (no cuenta coste)
     public Map<String, BigDecimal> generarRankCategoriasPorFacturacion() {
         Map<String, BigDecimal> ranking = new HashMap<>();
-        List<LineaPedido> pedidos = exploradorController.getPedidos();
+        List<LineaPedido> pedidos = obtenerPedidosParaSesion();
         if (pedidos == null || pedidos.isEmpty()) {
             return new LinkedHashMap<>();
         }
@@ -124,7 +124,7 @@ public class CalculadoraFinanciera {
      */
     public List<Map<String, Object>> detectarLineasBajoMargen() {
         List<Map<String, Object>> incidencias = new ArrayList<>();
-        List<LineaPedido> pedidos = exploradorController.getPedidos();
+        List<LineaPedido> pedidos = obtenerPedidosParaSesion();
         JsonRepositoryReglaMargen repoReglas = new JsonRepositoryReglaMargen();
         
         if (pedidos == null || pedidos.isEmpty()) {
@@ -176,7 +176,7 @@ public class CalculadoraFinanciera {
     public Map<String, BigDecimal> calcularDesviacionObjetivo(Integer idZona) {
         Map<String, BigDecimal> resultado = new HashMap<>();
         JsonRepositoryZonaComercial repoZonas = new JsonRepositoryZonaComercial();
-        List<LineaPedido> pedidos = exploradorController.getPedidos();
+        List<LineaPedido> pedidos = obtenerPedidosParaSesion();
 
         ZonaComercial zona = repoZonas.findById(idZona.toString());
         if (zona == null) {
@@ -219,6 +219,13 @@ public class CalculadoraFinanciera {
         List<Map<String, Object>> ranking = new ArrayList<>();
         JsonRepositoryZonaComercial repoZonas = new JsonRepositoryZonaComercial();
         List<ZonaComercial> zonas = repoZonas.findAll();
+        SesionUsuario sesion = SesionAplicacion.obtener();
+
+        if (sesion != null && sesion.esComercial() && sesion.zonaComercial() != null) {
+            zonas = zonas.stream()
+                .filter(zona -> zona != null && zona.getId() != null && zona.getId().equals(sesion.zonaComercial()))
+                .collect(Collectors.toList());
+        }
 
         for (ZonaComercial zona : zonas) {
             Map<String, BigDecimal> desviacion = calcularDesviacionObjetivo(zona.getId());
@@ -243,5 +250,21 @@ public class CalculadoraFinanciera {
         });
 
         return ranking;
+    }
+
+    private List<LineaPedido> obtenerPedidosParaSesion() {
+        List<LineaPedido> pedidos = exploradorController.getPedidos();
+        if (pedidos == null || pedidos.isEmpty()) {
+            return pedidos;
+        }
+
+        SesionUsuario sesion = SesionAplicacion.obtener();
+        if (sesion == null || !sesion.esComercial() || sesion.zonaComercial() == null) {
+            return pedidos;
+        }
+
+        return pedidos.stream()
+            .filter(p -> p != null && p.getZonaComercial() != null && p.getZonaComercial().equals(sesion.zonaComercial()))
+            .collect(Collectors.toList());
     }
 }

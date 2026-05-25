@@ -33,4 +33,38 @@ class CsvImporterTest {
         assertEquals(1, resultado.getAvisos().size());
         assertTrue(resultado.getAvisos().get(0).contains("Fila 3"));
     }
+
+    @Test
+    void importaZonasOrdenadasPorIdAunqueElCsvVengaDesordenado() throws Exception {
+        Path tempFile = Files.createTempFile("zonas", ".csv");
+        Files.writeString(tempFile, String.join(System.lineSeparator(),
+                "id,nombre,pais,responsableComercial,objetivoFacturacionAnual",
+                "20,Zona C,España,Responsable C,3000",
+                "5,Zona A,España,Responsable A,1000",
+                "12,Zona B,España,Responsable B,2000"));
+
+        CsvImporter importer = new CsvImporter();
+        List<Integer> ids = importer.importCSVZonasComerciales(tempFile.toString()).stream()
+                .map(model.ZonaComercial::getId)
+                .toList();
+
+        assertEquals(List.of(5, 12, 20), ids);
+    }
+
+    @Test
+    void importaReglasOrdenadasPorIdAunqueElCsvVengaDesordenado() throws Exception {
+        Path tempFile = Files.createTempFile("reglas", ".csv");
+        Files.writeString(tempFile, String.join(System.lineSeparator(),
+                "id,categoriaProductoAfectada,margenMinimoPortcentaje,activa,descripcion",
+                "20,Categoria C,30,true,Regla C",
+                "5,Categoria A,10,true,Regla A",
+                "12,Categoria B,20,false,Regla B"));
+
+        CsvImporter importer = new CsvImporter();
+        List<Integer> ids = importer.importCSVReglasMargen(tempFile.toString()).stream()
+                .map(model.ReglaMargen::getId)
+                .toList();
+
+        assertEquals(List.of(5, 12, 20), ids);
+    }
 }

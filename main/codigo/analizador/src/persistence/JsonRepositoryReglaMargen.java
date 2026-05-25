@@ -104,7 +104,7 @@ public class JsonRepositoryReglaMargen {
     }
 
     private void ordenarPorId() {
-        reglas.sort(Comparator.comparing(ReglaMargen::getId));
+        reglas.sort(Comparator.comparing(ReglaMargen::getId, Comparator.nullsLast(Integer::compareTo)));
     }
 
     private Integer parseId(String id) {

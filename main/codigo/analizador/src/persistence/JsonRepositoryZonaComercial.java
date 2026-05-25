@@ -112,7 +112,7 @@ public class JsonRepositoryZonaComercial {
     }
 
     private void ordenarPorId() {
-        zonasComerciales.sort(Comparator.comparing(ZonaComercial::getId));
+        zonasComerciales.sort(Comparator.comparing(ZonaComercial::getId, Comparator.nullsLast(Integer::compareTo)));
     }
 
     private Integer parseId(String id) {

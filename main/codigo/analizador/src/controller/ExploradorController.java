@@ -10,6 +10,7 @@ import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import model.EstadoPedido;
 import model.LineaPedido;
+import model.ZonaComercial;
 import persistence.CsvImporter;
 import view.ConsolaErroresDialog;
 
@@ -51,6 +53,8 @@ public class ExploradorController {
     private final CsvImporter csvImporter = new CsvImporter();
     private Integer zonaComercialForzada;
     private boolean filtroComercialBloqueado;
+    private final Map<Integer, String> nombreZonaPorId = new java.util.HashMap<>();
+    private boolean catalogoZonasCargado = false;
 
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("dd-MM-uuuu")
             .withResolverStyle(ResolverStyle.STRICT);
@@ -565,11 +569,11 @@ public class ExploradorController {
                 if (valor == null || valor.isBlank()) {
                     yield new ArrayList<>();
                 }
-                try {
-                    yield filtrarPorZonaComercial(Integer.parseInt(valor.trim()));
-                } catch (NumberFormatException exception) {
+                Integer zona = resolverIdZona(valor);
+                if (zona == null) {
                     yield new ArrayList<>();
                 }
+                yield filtrarPorZonaComercial(zona);
             }
             case "estado" -> filtrarPorEstado(obtenerValorEstadoSeleccionado());
             case "fecha" -> {
@@ -620,18 +624,13 @@ public class ExploradorController {
                     actualizarEstado("Mostrando todos los pedidos.");
                     return;
                 }
-                if (zonaTexto.isBlank()) {
-                    actualizarEstado("Selecciona una zona comercial para filtrar.");
+                Integer zona = resolverIdZona(zonaTexto);
+                if (zona == null) {
+                    actualizarEstado("Selecciona una zona comercial válida.");
                     return;
                 }
-                try {
-                    int zona = Integer.parseInt(zonaTexto.trim());
-                    resultado = filtrarPorZonaComercial(zona);
-                    actualizarEstado("Filtrado por zona comercial: " + zona + " | Resultados: " + resultado.size());
-                } catch (NumberFormatException exception) {
-                    actualizarEstado("La zona comercial debe ser un número entero.");
-                    return;
-                }
+                resultado = filtrarPorZonaComercial(zona);
+                actualizarEstado("Filtrado por zona comercial: " + formatearZonaParaFiltro(zona) + " | Resultados: " + resultado.size());
             }
             case FILTRO_ESTADO -> {
                 String estado = obtenerValorEstadoSeleccionado();
@@ -691,9 +690,12 @@ public class ExploradorController {
 
         String tipoFiltro = tipoFiltroComboBox != null ? tipoFiltroComboBox.getValue() : null;
         if (tipoFiltro == null || tipoFiltro.isBlank()) {
-            valorFiltroComboBox.getItems().setAll(OPCION_TODAS);
+            List<String> categorias = new ArrayList<>();
+            categorias.add(OPCION_TODAS);
+            categorias.addAll(obtenerCategoriasOrdenadas());
+            valorFiltroComboBox.getItems().setAll(categorias);
             valorFiltroComboBox.getSelectionModel().select(OPCION_TODAS);
-            valorFiltroComboBox.setPromptText("Selecciona una opción");
+            valorFiltroComboBox.setPromptText("Selecciona la categoría");
             return;
         }
 
@@ -747,7 +749,7 @@ public class ExploradorController {
         zonas.add(OPCION_TODAS);
         zonas.addAll(obtenerZonasOrdenadas());
         valorFiltroComboBox.getItems().setAll(zonas);
-        valorFiltroComboBox.getSelectionModel().select(String.valueOf(zonaComercialForzada));
+        valorFiltroComboBox.getSelectionModel().select(formatearZonaParaFiltro(zonaComercialForzada));
         tipoFiltroComboBox.setDisable(true);
         valorFiltroComboBox.setDisable(true);
     }
@@ -760,12 +762,75 @@ public class ExploradorController {
     }
 
     private List<String> obtenerZonasOrdenadas() {
+        asegurarCatalogoZonasCargado();
         return obtenerZonasComerciales().stream()
-                .sorted()
-                .map(String::valueOf)
+                .map(this::formatearZonaParaFiltro)
+                .filter(zona -> zona != null && !zona.isBlank())
+                .sorted(String.CASE_INSENSITIVE_ORDER)
                 .collect(Collectors.toList());
     }
 
+    private String formatearZonaParaFiltro(Integer idZona) {
+        if (idZona == null) {
+            return "";
+        }
+
+        asegurarCatalogoZonasCargado();
+        String nombreZona = nombreZonaPorId.get(idZona);
+        if (nombreZona == null || nombreZona.isBlank()) {
+            return "Zona " + idZona;
+        }
+
+        return nombreZona;
+    }
+
+    private Integer resolverIdZona(String valorZona) {
+        if (valorZona == null) {
+            return null;
+        }
+
+        String zonaTexto = valorZona.trim();
+        if (zonaTexto.isBlank() || OPCION_TODAS.equalsIgnoreCase(zonaTexto)) {
+            return null;
+        }
+
+        asegurarCatalogoZonasCargado();
+        for (Integer idZona : obtenerZonasComerciales()) {
+            String etiqueta = formatearZonaParaFiltro(idZona);
+            if (zonaTexto.equalsIgnoreCase(etiqueta)) {
+                return idZona;
+            }
+        }
+
+        try {
+            return Integer.valueOf(zonaTexto);
+        } catch (NumberFormatException exception) {
+            return null;
+        }
+    }
+
+    private void asegurarCatalogoZonasCargado() {
+        if (catalogoZonasCargado) {
+            return;
+        }
+
+        catalogoZonasCargado = true;
+        try {
+            var recursoZonas = getClass().getResource("/data/zonas.csv");
+            if (recursoZonas == null) {
+                return;
+            }
+
+            List<ZonaComercial> zonas = csvImporter.importCSVZonasComerciales(Path.of(recursoZonas.toURI()).toString());
+            for (ZonaComercial zona : zonas) {
+                if (zona != null && zona.getId() != null && zona.getNombre() != null && !zona.getNombre().isBlank()) {
+                    nombreZonaPorId.put(zona.getId(), zona.getNombre().trim());
+                }
+            }
+        } catch (java.net.URISyntaxException | IllegalArgumentException | SecurityException ignored) {
+            // Si no se puede cargar el catálogo, se usa fallback "Zona {id}".
+        }
+    }
     private String aCapitalCasePrimeraPalabra(String valor) {
         if (valor == null) {
             return null;

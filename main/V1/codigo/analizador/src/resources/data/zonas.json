@@ -1,7 +1,0 @@
-[
-  {"idZona": 1, "nombre": "Zona Norte", "descripcion": "Zona comercial Norte"},
-  {"idZona": 2, "nombre": "Zona Centro", "descripcion": "Zona comercial Centro"},
-  {"idZona": 3, "nombre": "Zona Sur", "descripcion": "Zona comercial Sur"},
-  {"idZona": 4, "nombre": "Zona Este", "descripcion": "Zona comercial Este"},
-  {"idZona": 5, "nombre": "Zona Oeste", "descripcion": "Zona comercial Oeste"}
-]

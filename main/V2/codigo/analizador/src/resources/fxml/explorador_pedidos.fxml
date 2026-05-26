@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefWidth="1280.0" prefHeight="760.0" spacing="20.0" styleClass="view-container" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <Label text="Explorador de pedidos" styleClass="view-title" />
+
+      <GridPane hgap="16.0" vgap="12.0">
+         <columnConstraints>
+            <ColumnConstraints minWidth="130.0" prefWidth="150.0" />
+            <ColumnConstraints hgrow="ALWAYS" />
+            <ColumnConstraints minWidth="130.0" prefWidth="150.0" />
+            <ColumnConstraints hgrow="ALWAYS" />
+         </columnConstraints>
+         <children>
+            <Label text="Tipo de filtro" styleClass="input-label" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+            <ComboBox fx:id="tipoFiltroComboBox" prefWidth="240.0" onAction="#actualizarControlesFiltro" styleClass="dark-input" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+
+            <Label fx:id="valorFiltroLabel" text="Categoría" styleClass="input-label" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+            <TextField fx:id="valorFiltroTextField" promptText="Escribe la categoría..." onAction="#aplicarFiltroDesdeUI" styleClass="dark-input" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="3" />
+
+            <Label fx:id="fechaInicioLabel" text="Fecha inicio" visible="false" managed="false" styleClass="input-label" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+            <DatePicker fx:id="fechaInicioDatePicker" visible="false" managed="false" styleClass="dark-input" GridPane.rowIndex="2" GridPane.columnIndex="1" />
+            
+            <Label fx:id="fechaFinLabel" text="Fecha fin" visible="false" managed="false" styleClass="input-label" GridPane.rowIndex="2" GridPane.columnIndex="2" />
+            <DatePicker fx:id="fechaFinDatePicker" visible="false" managed="false" styleClass="dark-input" GridPane.rowIndex="2" GridPane.columnIndex="3" />
+         </children>
+      </GridPane>
+
+      <HBox spacing="12.0">
+         <children>
+            <Button text="Aplicar filtro" onAction="#aplicarFiltroDesdeUI" styleClass="action-button" />
+            <Button text="Limpiar" onAction="#limpiarFiltros" styleClass="action-button" />
+         </children>
+      </HBox>
+
+      <Label fx:id="estadoLabel" text="Cargando pedidos..." styleClass="status-label" />
+
+      <TableView fx:id="pedidosTableView" VBox.vgrow="ALWAYS" styleClass="data-table">
+         <columns>
+            <TableColumn fx:id="idLineaColumn" text="ID Línea" prefWidth="80.0" />
+            <TableColumn fx:id="idPedidoColumn" text="ID Pedido" prefWidth="85.0" />
+            <TableColumn fx:id="referenciaProdutoColumn" text="Referencia" prefWidth="120.0" />
+            <TableColumn fx:id="descripcionProductoColumn" text="Descripción" prefWidth="200.0" />
+            <TableColumn fx:id="categoriaColumn" text="Categoría" prefWidth="140.0" />
+            <TableColumn fx:id="zonaComercialColumn" text="Zona" prefWidth="80.0" />
+            <TableColumn fx:id="unidadesColumn" text="Unidades" prefWidth="90.0" />
+            <TableColumn fx:id="costeUnitarioColumn" text="Coste Unit." prefWidth="110.0" />
+            <TableColumn fx:id="precioVentaUnitarioColumn" text="Venta Unit." prefWidth="110.0" />
+            <TableColumn fx:id="fechaPedidoColumn" text="Fecha" prefWidth="100.0" />
+            <TableColumn fx:id="estadoColumn" text="Estado" prefWidth="120.0" />
+         </columns>
+      </TableView>
+   </children>
+</VBox>

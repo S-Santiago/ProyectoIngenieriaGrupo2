@@ -1,0 +1,111 @@
+idLinea,idPedido,referenciaProduto,descripcionProducto,categoria,costeUnitario,precioVentaUnitario,unidades,fechaPedido,zonaComercial,estado
+1,201,PROD-001,"Laptop 15"" Retina",Electrónica,460.00,799.99,3,2026-01-10,1,completado
+2,201,PROD-002,"Ratón inalámbrico",Accesorios,8.50,24.99,10,2026-01-10,1,completado
+3,202,PROD-003,"Teclado mecánico",Accesorios,35.00,99.99,2,2026-01-11,2,completado
+4,202,PROD-004,"Monitor 27""",Electrónica,145.00,349.99,1,2026-01-11,2,completado
+5,203,PROD-005,"Diadema Bluetooth",Audio,25.00,79.99,5,2026-01-12,3,pendiente
+6,203,PROD-006,"Tarjeta SD 64GB",Almacenamiento,12.00,34.99,8,2026-01-12,3,pendiente
+7,204,PROD-007,"Webcam 4K",Accesorios,60.00,159.99,2,2026-01-13,1,completado
+8,205,PROD-008,"Cable HDMI 2m",Accesorios,3.00,12.99,25,2026-01-14,2,completado
+9,205,PROD-001,"Laptop 15"" Retina",Electrónica,460.00,799.99,1,2026-01-14,2,cancelado
+10,206,PROD-009,"Adaptador USB-C",Accesorios,5.00,19.99,15,2026-01-15,3,completado
+11,207,PROD-010,"Ventilador portátil",Accesorios,15.00,39.99,6,2026-01-16,1,completado
+12,207,PROD-003,"Teclado mecánico",Accesorios,35.00,99.99,3,2026-01-16,1,completado
+13,208,PROD-004,"Monitor 27""",Electrónica,145.00,349.99,1,2026-01-17,2,pendiente
+14,209,PROD-005,"Diadema Bluetooth",Audio,25.00,79.99,10,2026-01-18,3,completado
+15,210,PROD-011,"Mochila 15""",Accesorios,20.00,49.99,4,2026-01-19,1,completado
+16,210,PROD-002,"Ratón inalámbrico",Accesorios,8.50,24.99,20,2026-01-19,1,completado
+17,211,PROD-012,"Base refrigerante",Accesorios,30.00,89.99,2,2026-01-20,2,completado
+18,212,PROD-006,"Tarjeta SD 64GB",Almacenamiento,12.00,34.99,12,2026-01-21,3,completado
+19,213,PROD-007,"Webcam 4K",Accesorios,60.00,159.99,1,2026-01-22,1,pendiente
+20,214,PROD-010,"Ventilador portátil",Accesorios,15.00,39.99,4,2026-01-23,2,completado
+21,214,PROD-001,"Laptop 15"" Retina",Electrónica,460.00,799.99,1,2026-01-23,2,completado
+22,215,PROD-013,"Disco externo 1TB",Almacenamiento,80.00,199.99,2,2026-01-24,3,completado
+23,216,PROD-014,"Impresora multifunción",Electrónica,115.00,299.99,1,2026-01-25,1,completado
+24,217,PROD-015,"Proyector portátil",Electrónica,200.00,499.99,1,2026-01-26,2,pendiente
+25,218,PROD-016,"Soporte monitor",Accesorios,10.00,29.99,6,2026-01-27,3,completado
+26,219,PROD-017,"Hub USB 3.0",Accesorios,25.00,59.99,3,2026-01-28,1,completado
+27,220,PROD-018,"Alfombrilla ratón",Accesorios,5.00,14.99,20,2026-01-29,2,completado
+28,220,PROD-002,"Ratón inalámbrico",Accesorios,8.50,24.99,12,2026-01-29,2,completado
+29,221,PROD-019,"Estación acoplamiento",Accesorios,50.00,129.99,1,2026-01-30,3,completado
+30,222,PROD-020,"RAM 16GB",Almacenamiento,70.00,149.99,2,2026-01-31,1,completado
+31,223,PROD-021,"SSD 1TB",Almacenamiento,100.00,249.99,2,2026-02-01,2,completado
+32,224,PROD-022,"Teclado ergonómico",Accesorios,40.00,109.99,5,2026-02-02,3,completado
+33,225,PROD-023,"Mousepad RGB",Accesorios,15.00,39.99,10,2026-02-03,1,completado
+34,226,PROD-024,"Cámara seguridad",Electrónica,80.00,199.99,2,2026-02-04,2,completado
+35,227,PROD-025,"Router Wi-Fi 6",Electrónica,100.00,249.99,1,2026-02-05,3,completado
+36,228,PROD-026,"Disco duro interno",Almacenamiento,60.00,149.99,4,2026-02-06,1,completado
+37,229,PROD-027,"Monitor ultrawide",Electrónica,200.00,499.99,1,2026-02-07,2,pendiente
+38,230,PROD-028,"Teclado inalámbrico",Accesorios,30.00,79.99,2,2026-02-08,3,completado
+39,231,PROD-029,"Cargador portátil",Accesorios,20.00,49.99,8,2026-02-09,1,completado
+40,232,PROD-030,"Soporte laptop",Accesorios,25.00,59.99,3,2026-02-10,2,completado
+41,232,PROD-002,"Ratón inalámbrico",Accesorios,8.50,24.99,7,2026-02-10,2,completado
+42,233,PROD-031,"Base monitor",Accesorios,15.00,39.99,6,2026-02-11,3,completado
+43,234,PROD-032,"Teclado gaming",Accesorios,50.00,129.99,2,2026-02-12,1,completado
+44,235,PROD-033,"Cámara deportiva",Electrónica,90.00,219.99,1,2026-02-13,2,completado
+45,236,PROD-034,"Cargador rápido",Accesorios,12.00,29.99,15,2026-02-14,3,completado
+46,237,PROD-035,"Soporte pared monitor",Accesorios,22.00,59.99,2,2026-02-15,1,completado
+47,238,PROD-036,"Micrófono USB",Audio,45.00,119.99,3,2026-02-16,2,completado
+48,239,PROD-037,"Batería externa 20000mAh",Accesorios,30.00,79.99,2,2026-02-17,3,completado
+49,240,PROD-038,"Kit limpieza portátil",Accesorios,5.00,14.99,25,2026-02-18,1,completado
+50,241,PROD-039,"Soporte vertical laptop",Accesorios,18.00,44.99,6,2026-02-19,2,completado
+51,242,PROD-040,"Tablet 10""",Electrónica,150.00,299.99,5,2026-03-01,1,completado
+52,243,PROD-041,"Auriculares Bluetooth",Audio,28.00,69.99,12,2026-03-02,2,completado
+53,244,PROD-042,"Cámara web 1080p",Accesorios,35.00,89.99,4,2026-03-03,3,completado
+54,245,PROD-043,"Soporte para móvil",Accesorios,6.00,14.99,30,2026-03-04,1,completado
+55,246,PROD-044,"SSD 512GB",Almacenamiento,60.00,129.99,3,2026-03-05,2,completado
+56,247,PROD-045,"Cargador inalámbrico",Accesorios,10.00,24.99,9,2026-03-06,3,pendiente
+57,248,PROD-046,"Monitor 24""",Electrónica,80.00,179.99,2,2026-03-07,1,completado
+58,249,PROD-047,"Teclado RGB",Accesorios,45.00,99.99,5,2026-03-08,2,completado
+59,250,PROD-048,"Ratón gaming",Accesorios,25.00,59.99,7,2026-03-09,3,completado
+60,251,PROD-049,"Base refrigerante Pro",Accesorios,35.00,79.99,2,2026-03-10,1,completado
+61,252,PROD-050,"Memoria RAM 8GB",Almacenamiento,30.00,74.99,6,2026-03-11,2,completado
+62,253,PROD-051,"Tarjeta SD 128GB",Almacenamiento,18.00,44.99,11,2026-03-12,3,completado
+63,254,PROD-052,"Adaptador HDMI",Accesorios,4.00,12.99,20,2026-03-13,1,completado
+64,255,PROD-053,"Batería portátil 10000mAh",Accesorios,20.00,49.99,8,2026-03-14,2,completado
+65,256,PROD-054,"Soporte monitor ajustable",Accesorios,25.00,69.99,2,2026-03-15,3,completado
+66,257,PROD-055,"Cable USB-C 1m",Accesorios,2.50,9.99,50,2026-03-16,1,completado
+67,258,PROD-056,"Mochila 14""",Accesorios,22.00,54.99,4,2026-03-17,2,completado
+68,259,PROD-057,"Hub USB-C 4 puertos",Accesorios,18.00,39.99,10,2026-03-18,3,completado
+69,260,PROD-058,"Soporte vertical SSD",Accesorios,7.00,19.99,15,2026-03-19,1,completado
+70,261,PROD-059,"Panel LED portátil",Electrónica,40.00,99.99,3,2026-03-20,2,pendiente
+71,262,PROD-060,"Micrófono condensador",Audio,55.00,129.99,2,2026-03-21,3,completado
+72,263,PROD-061,"Carcasa externa HDD",Almacenamiento,12.00,29.99,7,2026-03-22,1,completado
+73,264,PROD-062,"Cable Ethernet 5m",Accesorios,3.50,9.99,25,2026-03-23,2,completado
+74,265,PROD-063,"Cargador USB-C 65W",Accesorios,28.00,64.99,5,2026-03-24,3,completado
+75,266,PROD-064,"Altavoz Bluetooth",Audio,35.00,89.99,6,2026-03-25,1,completado
+76,267,PROD-065,"Lector tarjetas USB",Accesorios,6.00,14.99,18,2026-03-26,2,completado
+77,268,PROD-066,"Soporte portátil plegable",Accesorios,9.00,24.99,22,2026-03-27,3,completado
+78,269,PROD-067,"Hub HDMI 4K",Accesorios,20.00,49.99,4,2026-03-28,1,completado
+79,270,PROD-068,"Cámara IP",Electrónica,70.00,159.99,3,2026-03-29,2,completado
+80,271,PROD-069,"Teclado inalámbrico compacto",Accesorios,28.00,69.99,9,2026-03-30,3,completado
+81,272,PROD-070,"Adaptador powerbank",Accesorios,9.00,24.99,14,2026-03-31,1,completado
+82,273,PROD-071,"Monitor portátil 14""",Electrónica,90.00,199.99,2,2026-04-02,2,completado
+83,274,PROD-072,"Soporte carga magnético",Accesorios,12.00,29.99,16,2026-04-04,3,completado
+84,275,PROD-073,"Base para auriculares",Accesorios,8.00,19.99,20,2026-04-06,1,completado
+85,276,PROD-074,"Estación docking 4K",Accesorios,75.00,179.99,2,2026-04-08,2,pendiente
+86,277,PROD-075,"Cámara acción 4K",Electrónica,85.00,209.99,1,2026-04-10,3,completado
+87,278,PROD-076,"Teclado mecánico compacto",Accesorios,48.00,109.99,3,2026-04-12,1,completado
+88,279,PROD-077,"Ratón vertical ergonómico",Accesorios,22.00,54.99,11,2026-04-14,2,completado
+89,280,PROD-078,"Alfombrilla XXL",Accesorios,12.00,29.99,25,2026-04-16,3,completado
+90,281,PROD-079,"Cargador multiusb",Accesorios,14.00,34.99,10,2026-04-18,1,completado
+91,282,PROD-080,"Micrófono de brazo",Audio,48.00,119.99,2,2026-04-20,2,completado
+92,283,PROD-081,"Soporte monitor doble",Accesorios,55.00,129.99,1,2026-04-22,3,completado
+93,284,PROD-082,"Cable displayport 2m",Accesorios,6.00,14.99,30,2026-04-24,1,completado
+94,285,PROD-083,"Estuche transporte",Accesorios,10.00,24.99,18,2026-04-26,2,completado
+95,286,PROD-084,"Kit limpieza pantalla",Accesorios,4.00,9.99,40,2026-04-28,3,completado
+96,287,PROD-085,"SSD NVMe 2TB",Almacenamiento,120.00,259.99,2,2026-04-30,1,completado
+97,288,PROD-086,"Adaptador Thunderbolt",Accesorios,35.00,79.99,5,2026-05-02,2,completado
+98,289,PROD-087,"Cargador coche USB-C",Accesorios,9.00,19.99,20,2026-05-04,3,completado
+99,290,PROD-088,"Soporte para webcam",Accesorios,7.00,17.99,15,2026-05-06,1,completado
+100,291,PROD-089,"Tablet stylus",Electrónica,45.00,99.99,6,2026-05-08,2,completado
+101,292,PROD-090,"Cable Thunderbolt 1m",Accesorios,12.00,29.99,10,2026-05-10,3,completado
+102,293,PROD-091,"Teclado numérico USB",Accesorios,9.00,19.99,22,2026-05-12,1,completado
+103,294,PROD-092,"Soporte carga vertical",Accesorios,11.00,24.99,12,2026-05-14,2,completado
+104,295,PROD-093,"Micrófono lavalier",Audio,18.00,39.99,30,2026-05-16,3,completado
+105,296,PROD-094,"Disco SSD externo 2TB",Almacenamiento,140.00,329.99,2,2026-05-18,1,completado
+106,297,PROD-095,"Cámara web 4K Pro",Electrónica,95.00,219.99,1,2026-05-20,2,completado
+107,298,PROD-096,"Base refrigerante XL",Accesorios,40.00,89.99,3,2026-05-22,3,completado
+108,299,PROD-097,"Adaptador VGA",Accesorios,3.50,9.99,35,2026-05-24,1,completado
+109,300,PROD-098,"Teclado silencioso",Accesorios,32.00,74.99,8,2026-05-26,2,completado
+110,301,PROD-099,"Mochila 17"" Pro",Accesorios,28.00,69.99,5,2026-05-30,3,completado

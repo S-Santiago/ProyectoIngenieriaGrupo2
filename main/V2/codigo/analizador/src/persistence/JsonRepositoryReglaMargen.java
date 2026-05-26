@@ -1,10 +1,12 @@
 package persistence;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +22,7 @@ public class JsonRepositoryReglaMargen {
 
     public JsonRepositoryReglaMargen() {
         this.reglas = cargarDesdeFichero();
+        ordenarPorId();
     }
 
     // CRUD 
@@ -79,25 +82,109 @@ public class JsonRepositoryReglaMargen {
             return new ArrayList<>();
         }
 
-        if (!Files.exists(FILE_PATH)) {
-            return new ArrayList<>();
+        // Si existe el fichero en disco, leerlo
+        if (Files.exists(FILE_PATH)) {
+            try {
+                List<ReglaMargen> desdeDisco = mapper.readValue(FILE_PATH.toFile(), new TypeReference<List<ReglaMargen>>() {});
+                System.out.println("[JsonRepositoryReglaMargen] Leídas " + desdeDisco.size() + " reglas desde disco: " + FILE_PATH.toAbsolutePath());
+                return desdeDisco;
+            } catch (IOException e) {
+                System.err.println("Error al leer reglas.json desde disco: " + e.getMessage());
+                return new ArrayList<>();
+            }
         }
 
-        try {
-            return mapper.readValue(FILE_PATH.toFile(), new TypeReference<List<ReglaMargen>>() {});
+        // Si no existe en disco, intentar cargar desde recursos empaquetados (classpath)
+        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("data/reglas.json")) {
+            if (is != null) {
+                // Primero intentar mapear directamente a ReglaMargen
+                try {
+                    List<ReglaMargen> desdeRecursos = mapper.readValue(is, new TypeReference<List<ReglaMargen>>() {});
+                    if (desdeRecursos != null && !desdeRecursos.isEmpty() && desdeRecursos.get(0).getId() != null) {
+                        try {
+                            mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), desdeRecursos);
+                        } catch (IOException e) {
+                            System.err.println("No se pudo copiar reglas.json desde recursos a disco: " + e.getMessage());
+                        }
+                        System.out.println("[JsonRepositoryReglaMargen] Leídas " + desdeRecursos.size() + " reglas desde recursos (formato directo)");
+                        return desdeRecursos;
+                    }
+                } catch (IOException ignore) {
+                    // ignore y probar formato alternativo
+                }
+
+                // Resetear stream y leer como lista de mapas para mapear campos alternativos
+                try (InputStream is2 = Thread.currentThread().getContextClassLoader().getResourceAsStream("data/reglas.json")) {
+                    if (is2 == null) return new ArrayList<>();
+                    List<java.util.Map<String, Object>> raw = mapper.readValue(is2, new TypeReference<List<java.util.Map<String, Object>>>() {});
+                    List<ReglaMargen> convertidas = new ArrayList<>();
+                    for (java.util.Map<String, Object> m : raw) {
+                        if (m == null) continue;
+                        Integer id = null;
+                        Object idObj = m.getOrDefault("id", m.get("idRegla"));
+                        if (idObj instanceof Number) id = ((Number) idObj).intValue();
+                        else if (idObj instanceof String) {
+                            try { id = Integer.valueOf((String) idObj); } catch (NumberFormatException e) {}
+                        }
+
+                        String categoria = (String) m.getOrDefault("categoriaProductoAfectada", m.get("nombre"));
+                        Double margen = null;
+                        Object margenObj = m.getOrDefault("margenMinimoPortcentaje", m.get("margenMinimo"));
+                        if (margenObj instanceof Number) margen = ((Number) margenObj).doubleValue();
+                        else if (margenObj instanceof String) {
+                            try { margen = Double.valueOf((String) margenObj); } catch (NumberFormatException e) {}
+                        }
+                        if (margen != null && margen <= 1.0) {
+                            // Asumir fracción y convertir a porcentaje
+                            margen = margen * 100.0;
+                        }
+                        boolean activa = false;
+                        Object actObj = m.getOrDefault("activa", m.get("activo"));
+                        if (actObj instanceof Boolean) activa = (Boolean) actObj;
+                        else if (actObj instanceof Number) activa = ((Number) actObj).intValue() != 0;
+                        else if (actObj instanceof String) activa = Boolean.parseBoolean((String) actObj);
+
+                        String descripcion = (String) m.getOrDefault("descripcion", m.get("descripcion"));
+
+                        ReglaMargen r = new ReglaMargen();
+                        r.setId(id);
+                        r.setCategoriaProductoAfectada(categoria);
+                        if (margen != null) r.setMargenMinimoPortcentaje(margen);
+                        r.setActiva(activa);
+                        r.setDescripcion(descripcion);
+                        convertidas.add(r);
+                    }
+                    try {
+                        mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), convertidas);
+                    } catch (IOException e) {
+                        System.err.println("No se pudo copiar reglas.json convertido a disco: " + e.getMessage());
+                    }
+                    System.out.println("[JsonRepositoryReglaMargen] Convertidas y leídas " + convertidas.size() + " reglas desde recursos (formato alternativo)");
+                    return convertidas;
+                } catch (IOException e) {
+                    System.err.println("Error al leer reglas.json desde recursos (formato alternativo): " + e.getMessage());
+                    return new ArrayList<>();
+                }
+            }
         } catch (IOException e) {
-            System.err.println("Error al leer reglas.json: " + e.getMessage());
-            return new ArrayList<>();
+            System.err.println("Error al acceder a recursos para reglas.json: " + e.getMessage());
         }
+
+        return new ArrayList<>();
     }
 
     private void guardarEnFichero() {
         try {
             Files.createDirectories(DATA_DIRECTORY);
+            ordenarPorId();
             mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), reglas);
         } catch (IOException e) {
             System.err.println("Error al guardar reglas.json: " + e.getMessage());
         }
+    }
+
+    private void ordenarPorId() {
+        reglas.sort(Comparator.comparing(ReglaMargen::getId));
     }
 
     private Integer parseId(String id) {

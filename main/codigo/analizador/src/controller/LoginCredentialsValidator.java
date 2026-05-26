@@ -12,9 +12,9 @@ public final class LoginCredentialsValidator {
     private static final Map<String, Credenciales> CREDENTIALS = new HashMap<>();
 
     static {
-        CREDENTIALS.put("sfsanchez", new Credenciales("Agapito", RolUsuario.COMERCIAL, 1));
+        CREDENTIALS.put("sfsanchez", new Credenciales("Agapito", RolUsuario.DIRECTOR_FINANCIERO, null));
         CREDENTIALS.put("hlopez", new Credenciales("Mondongo", RolUsuario.COMERCIAL, 2));
-        CREDENTIALS.put("dfielding", new Credenciales("pichabrava3", RolUsuario.DIRECTOR_FINANCIERO, null));
+        CREDENTIALS.put("dfielding", new Credenciales("pichabrava3", RolUsuario.COMERCIAL, 1));
     }
 
     private LoginCredentialsValidator() {

@@ -25,14 +25,14 @@
             <VBox spacing="10.0">
                <children>
                   <Label text="Usuario" styleClass="login-field-label" />
-                  <TextField fx:id="txtUsuario" promptText="sfsanchez" onAction="#autenticar" styleClass="login-field" />
+                  <TextField fx:id="txtUsuario" promptText="Usuario" onAction="#autenticar" styleClass="login-field" />
                </children>
             </VBox>
 
             <VBox spacing="10.0">
                <children>
                   <Label text="Contraseña" styleClass="login-field-label" />
-                  <PasswordField fx:id="txtContrasena" promptText="Agapito" onAction="#autenticar" styleClass="login-field" />
+                  <PasswordField fx:id="txtContrasena" promptText="Contraseña" onAction="#autenticar" styleClass="login-field" />
                </children>
             </VBox>
 

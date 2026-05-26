@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "categoriaProductoAfectada": "Electrónica",
+    "margenMinimoPortcentaje": 35.0,
+    "activa": true,
+    "descripcion": "Margen mínimo para productos electrónicos de alto valor"
+  },
+  {
+    "id": 2,
+    "categoriaProductoAfectada": "Accesorios",
+    "margenMinimoPortcentaje": 60.0,
+    "activa": true,
+    "descripcion": "Margen mínimo para accesorios y periféricos"
+  },
+  {
+    "id": 3,
+    "categoriaProductoAfectada": "Audio",
+    "margenMinimoPortcentaje": 68.0,
+    "activa": true,
+    "descripcion": "Margen mínimo para productos de audio"
+  },
+  {
+    "id": 4,
+    "categoriaProductoAfectada": "Almacenamiento",
+    "margenMinimoPortcentaje": 65.0,
+    "activa": true,
+    "descripcion": "Margen mínimo para almacenamiento y memoria"
+  },
+  {
+    "id": 5,
+    "categoriaProductoAfectada": "Software",
+    "margenMinimoPortcentaje": 50.0,
+    "activa": false,
+    "descripcion": "Margen mínimo para software - actualmente desactivada"
+  }
+]

@@ -32,7 +32,8 @@
                   <Button text="Refrescar todo" onAction="#refrescarPanel" styleClass="action-button" />
                   <Button text="Refrescar gestión" onAction="#refrescarGestion" styleClass="action-button" />
                   <Button text="Refrescar gráficas" onAction="#refrescarGraficas" styleClass="action-button" />
-                  <Button text="Exportar análisis" onAction="#exportarAnalisis" styleClass="action-button" />
+                  <Button text="Exportar ranking" onAction="#exportarRankingCategorias" styleClass="action-button" />
+                  <Button text="Exportar líneas bajo margen" onAction="#exportarLineasBajoMargen" styleClass="action-button" />
                </children>
             </HBox>
 
@@ -55,6 +56,7 @@
                                                 <TableColumn fx:id="rankMargenPorcentajeColumn" prefWidth="150.0" text="Margen %" />
                                              </columns>
                                           </TableView>
+                                          
                                        </VBox>
                                     </TitledPane>
 
@@ -70,6 +72,7 @@
                                                 <TableColumn fx:id="deficienciaColumn" prefWidth="120.0" text="Deficiencia" />
                                              </columns>
                                           </TableView>
+                                          
                                           <Label fx:id="contadorBajoMargenLabel" text="Incidencias encontradas: 0" styleClass="danger-label" />
                                        </VBox>
                                     </TitledPane>

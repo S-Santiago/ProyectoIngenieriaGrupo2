@@ -9,30 +9,31 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
 
 <StackPane styleClass="login-root" prefWidth="520.0" prefHeight="420.0"
            xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="controller.LoginController">
    <children>
-      <VBox styleClass="login-card" alignment="CENTER_LEFT" maxWidth="360.0" spacing="14.0">
+      <VBox alignment="CENTER_LEFT" spacing="14.0" style="-fx-background-color: transparent; -fx-effect: null; -fx-border-color: transparent;">
          <padding>
             <Insets top="28" right="28" bottom="28" left="28" />
          </padding>
          <children>
-            <Label text="Acceso al sistema" styleClass="login-title" />
+            <Text wrappingWidth="480.0" style="-fx-font-size:30px; -fx-font-weight:700; -fx-fill:#0f172a;">📊 Analizador de rentabilidad y gestión comercial</Text>
             <Label text="Introduce tus credenciales para continuar." styleClass="login-subtitle" wrapText="true" />
 
             <VBox spacing="10.0">
                <children>
                   <Label text="Usuario" styleClass="login-field-label" />
-                  <TextField fx:id="txtUsuario" promptText="Usuario" onAction="#autenticar" styleClass="login-field" />
+                  <TextField fx:id="txtUsuario" promptText="Usuario" onAction="#autenticar" styleClass="login-field" prefWidth="440.0" />
                </children>
             </VBox>
 
             <VBox spacing="10.0">
                <children>
                   <Label text="Contraseña" styleClass="login-field-label" />
-                  <PasswordField fx:id="txtContrasena" promptText="Contraseña" onAction="#autenticar" styleClass="login-field" />
+                  <PasswordField fx:id="txtContrasena" promptText="Contraseña" onAction="#autenticar" styleClass="login-field" prefWidth="440.0" />
                </children>
             </VBox>
 

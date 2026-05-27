@@ -130,7 +130,8 @@ public class ExcelExporter {
         }
     }
 
-    public void exportAnalisisRentabilidad(String filePath, List<RankingCategoriaExportRow> rankingCategorias,
+    public void exportAnalisisRentabilidad(String filePath,
+            List<RankingCategoriaExportRow> rankingCategorias,
             List<LineaBajoMargenExportRow> lineasBajoMargen) {
         List<RankingCategoriaExportRow> rankingSeguro = rankingCategorias == null ? Collections.emptyList() : rankingCategorias;
         List<LineaBajoMargenExportRow> lineasSeguras = lineasBajoMargen == null ? Collections.emptyList() : lineasBajoMargen;
@@ -146,10 +147,39 @@ public class ExcelExporter {
         }
     }
 
+    public void exportRankingCategorias(String filePath, List<RankingCategoriaExportRow> rankingCategorias) {
+        List<RankingCategoriaExportRow> rankingSeguro = rankingCategorias == null ? Collections.emptyList() : rankingCategorias;
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook(); FileOutputStream outputStream = new FileOutputStream(filePath)) {
+            crearHojaRankingCategorias(workbook, rankingSeguro);
+            workbook.write(outputStream);
+        } catch (IOException e) {
+            System.err.println("Error al exportar el ranking de categorías: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error inesperado al exportar el ranking de categorías: " + e.getMessage());
+        }
+    }
+
+    public void exportLineasBajoMargen(String filePath, List<LineaBajoMargenExportRow> lineasBajoMargen) {
+        List<LineaBajoMargenExportRow> lineasSeguras = lineasBajoMargen == null ? Collections.emptyList() : lineasBajoMargen;
+
+        try (XSSFWorkbook workbook = new XSSFWorkbook(); FileOutputStream outputStream = new FileOutputStream(filePath)) {
+            crearHojaLineasBajoMargen(workbook, lineasSeguras);
+            workbook.write(outputStream);
+        } catch (IOException e) {
+            System.err.println("Error al exportar las líneas bajo margen: " + e.getMessage());
+        } catch (Exception e) {
+            System.err.println("Error inesperado al exportar las líneas bajo margen: " + e.getMessage());
+        }
+    }
+
     private void crearHojaRankingCategorias(XSSFWorkbook workbook, List<RankingCategoriaExportRow> rankingCategorias) {
         String[] headers = {"Posición", "Categoría", "Facturación", "Margen bruto", "Margen %"};
         List<List<?>> filas = new java.util.ArrayList<>();
         for (RankingCategoriaExportRow fila : rankingCategorias) {
+            if (fila == null) {
+                continue;
+            }
             filas.add(List.<Object>of(
                 fila.posicion(),
                 fila.categoria(),
@@ -164,6 +194,9 @@ public class ExcelExporter {
         String[] headers = {"ID Línea", "Producto", "Categoría", "Margen actual", "Margen requerido", "Deficiencia"};
         List<List<?>> filas = new java.util.ArrayList<>();
         for (LineaBajoMargenExportRow fila : lineasBajoMargen) {
+            if (fila == null) {
+                continue;
+            }
             filas.add(List.<Object>of(
                 fila.idLinea(),
                 fila.producto(),
@@ -182,6 +215,9 @@ public class ExcelExporter {
 
         int rowIndex = 1;
         for (List<?> fila : filas) {
+            if (fila == null) {
+                continue;
+            }
             XSSFRow row = sheet.createRow(rowIndex++);
             for (int i = 0; i < headers.length; i++) {
                 Object valor = i < fila.size() ? fila.get(i) : null;

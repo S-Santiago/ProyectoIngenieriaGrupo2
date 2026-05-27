@@ -21,7 +21,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<ScrollPane prefWidth="1280.0" prefHeight="760.0" fitToWidth="true" fitToHeight="true" pannable="true" styleClass="scroll-container" stylesheets="@styles.css" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+<ScrollPane prefWidth="1280.0" prefHeight="760.0" fitToWidth="true" fitToHeight="true" pannable="true" styleClass="scroll-container" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
    <content>
       <VBox spacing="14.0" styleClass="view-container">
          <children>
@@ -41,7 +41,7 @@
                <tabs>
                   <Tab text="Análisis">
                      <content>
-                        <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true" VBox.vgrow="ALWAYS" styleClass="scroll-container" stylesheets="@styles.css">
+                        <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true" VBox.vgrow="ALWAYS" styleClass="scroll-container">
                            <content>
                               <VBox spacing="14.0" styleClass="view-container">
                                  <children>
@@ -114,7 +114,7 @@
 
                   <Tab fx:id="tabGestion" text="Gestión">
                      <content>
-                        <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true" VBox.vgrow="ALWAYS" styleClass="scroll-container" stylesheets="@styles.css">
+                        <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true" VBox.vgrow="ALWAYS" styleClass="scroll-container">
                            <content>
                               <VBox spacing="14.0" styleClass="view-container">
                                  <children>
@@ -200,7 +200,7 @@
 
                   <Tab text="Gráficas">
                      <content>
-                        <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true" VBox.vgrow="ALWAYS" styleClass="scroll-container" stylesheets="@styles.css">
+                        <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true" VBox.vgrow="ALWAYS" styleClass="scroll-container">
                            <content>
                               <VBox spacing="14.0" styleClass="view-container">
                                  <children>

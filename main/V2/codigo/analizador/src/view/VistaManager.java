@@ -44,6 +44,7 @@ public class VistaManager {
             
             Parent root = loader.load();
             Scene scene = new Scene(root, 1024, 768);
+            aplicarEstilos(scene);
             primaryStage.setTitle(titulo);
             primaryStage.setScene(scene);
             primaryStage.show();
@@ -57,6 +58,13 @@ public class VistaManager {
                 "Error de Navegación",
                 "No se pudo inicializar la vista " + titulo + ".\nDetalle: " + e.getMessage()
             );
+        }
+    }
+
+    private void aplicarEstilos(Scene scene) {
+        var recurso = getClass().getResource("/fxml/styles.css");
+        if (scene != null && recurso != null) {
+            scene.getStylesheets().add(recurso.toExternalForm());
         }
     }
 }

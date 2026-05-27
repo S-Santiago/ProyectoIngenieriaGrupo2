@@ -1,0 +1,5 @@
+[
+  { "usuario": "sfsanchez", "contrasena": "Agapito", "rol": "DIRECTOR_FINANCIERO", "zonasComerciales": [] },
+  { "usuario": "hlopez", "contrasena": "Mondongo", "rol": "COMERCIAL", "zonasComerciales": [2] },
+  { "usuario": "dfielding", "contrasena": "pichabrava3", "rol": "COMERCIAL", "zonasComerciales": [1] }
+]

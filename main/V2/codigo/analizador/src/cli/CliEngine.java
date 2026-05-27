@@ -20,6 +20,7 @@ import model.ReglaMargen;
 import model.ZonaComercial;
 import persistence.CsvImporter;
 import persistence.ExcelExporter;
+import view.ConsolaErroresDialog;
 
 public class CliEngine {
 
@@ -92,6 +93,7 @@ public class CliEngine {
 
         List<LineaPedido> lineasImportadas = csvImporter.importCSVLineaPedidos(rutaFinal);
         exploradorController.setPedidos(lineasImportadas);
+        ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
         ultimoResultado = exploradorController.getPedidos();
 
         System.out.println("Pedidos cargados correctamente: " + ultimoResultado.size());

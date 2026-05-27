@@ -2,6 +2,7 @@ package controller;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
@@ -73,7 +74,7 @@ class RentabilidadControllerTest {
 
     @Test
     void accesoFinancieroQuedaBloqueadoParaComercial() {
-        SesionAplicacion.establecer(new SesionUsuario("comercial", RolUsuario.COMERCIAL, 1));
+        SesionAplicacion.establecer(new SesionUsuario("comercial", RolUsuario.COMERCIAL, List.of(1)));
 
         RentabilidadController controller = new RentabilidadController();
 
@@ -88,7 +89,7 @@ class RentabilidadControllerTest {
         setField(controller, "btnImportacionKpis", new Button("Importación"));
         setField(controller, "btnRentabilidad", new Button("Gestión comercial"));
 
-        controller.aplicarSesion(new SesionUsuario("comercial", RolUsuario.COMERCIAL, 1));
+        controller.aplicarSesion(new SesionUsuario("comercial", RolUsuario.COMERCIAL, List.of(1)));
 
         Button btnImportacionKpis = (Button) getField(controller, "btnImportacionKpis");
         Button btnRentabilidad = (Button) getField(controller, "btnRentabilidad");
@@ -101,7 +102,7 @@ class RentabilidadControllerTest {
 
     @Test
     void aplicarSesionDeComercialBloqueaGestionYFijaLaZona() throws Exception {
-        SesionUsuario sesion = new SesionUsuario("comercial", RolUsuario.COMERCIAL, 2);
+        SesionUsuario sesion = new SesionUsuario("comercial", RolUsuario.COMERCIAL, List.of(2));
         SesionAplicacion.establecer(sesion);
 
         ExploradorController exploradorController = ExploradorController.getInstance();
@@ -131,10 +132,10 @@ class RentabilidadControllerTest {
         ComboBox<String> valorFiltroComboBox = (ComboBox<String>) getField(exploradorController, "valorFiltroComboBox");
 
         assertTrue(tabGestion.isDisable());
-        assertTrue(tipoFiltroComboBox.isDisable());
-        assertTrue(valorFiltroComboBox.isDisable());
-        assertEquals("Zona Comercial", tipoFiltroComboBox.getValue());
-        assertEquals("2", valorFiltroComboBox.getValue());
+        assertFalse(tipoFiltroComboBox.isDisable());
+        assertFalse(valorFiltroComboBox.isDisable());
+        assertNull(tipoFiltroComboBox.getValue());
+        assertNull(valorFiltroComboBox.getValue());
         SesionAplicacion.limpiar();
     }
 

@@ -221,9 +221,10 @@ public class CalculadoraFinanciera {
         List<ZonaComercial> zonas = repoZonas.findAll();
         SesionUsuario sesion = SesionAplicacion.obtener();
 
-        if (sesion != null && sesion.esComercial() && sesion.zonaComercial() != null) {
+        if (sesion != null && sesion.esComercial() && !sesion.zonasComerciales().isEmpty()) {
+            var zonasPermitidas = sesion.zonasComerciales();
             zonas = zonas.stream()
-                .filter(zona -> zona != null && zona.getId() != null && zona.getId().equals(sesion.zonaComercial()))
+                .filter(zona -> zona != null && zona.getId() != null && zonasPermitidas.contains(zona.getId()))
                 .collect(Collectors.toList());
         }
 
@@ -259,12 +260,13 @@ public class CalculadoraFinanciera {
         }
 
         SesionUsuario sesion = SesionAplicacion.obtener();
-        if (sesion == null || !sesion.esComercial() || sesion.zonaComercial() == null) {
+        if (sesion == null || !sesion.esComercial() || sesion.zonasComerciales() == null || sesion.zonasComerciales().isEmpty()) {
             return pedidos;
         }
 
+        var zonasPermitidas = sesion.zonasComerciales();
         return pedidos.stream()
-            .filter(p -> p != null && p.getZonaComercial() != null && p.getZonaComercial().equals(sesion.zonaComercial()))
+            .filter(p -> p != null && p.getZonaComercial() != null && zonasPermitidas.contains(p.getZonaComercial()))
             .collect(Collectors.toList());
     }
 }

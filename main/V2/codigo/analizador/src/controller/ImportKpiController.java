@@ -91,6 +91,7 @@ public class ImportKpiController {
                 CsvImporter.ImportResult<LineaPedido> resultadoImportacion = csvImporter.importCSVLineaPedidosConAvisos(selectedFile.getAbsolutePath());
                 List<LineaPedido> lineasImportadas = resultadoImportacion.getElementos();
                 exploradorController.setPedidos(lineasImportadas);
+                ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
 
                 if (resultadoImportacion.tieneAvisos()) {
                     ConsolaErroresDialog.mostrarAdvertencia(

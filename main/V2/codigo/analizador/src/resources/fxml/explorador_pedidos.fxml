@@ -28,6 +28,7 @@
             <ComboBox fx:id="tipoFiltroComboBox" prefWidth="240.0" onAction="#actualizarControlesFiltro" styleClass="dark-input" GridPane.rowIndex="0" GridPane.columnIndex="1" />
 
             <Label fx:id="valorFiltroLabel" text="Categoría" styleClass="input-label" GridPane.rowIndex="1" GridPane.columnIndex="0" />
+            <ComboBox fx:id="valorFiltroComboBox" prefWidth="240.0" onAction="#aplicarFiltroDesdeUI" styleClass="dark-input" GridPane.rowIndex="1" GridPane.columnIndex="1" />
             <TextField fx:id="valorFiltroTextField" promptText="Escribe la categoría..." onAction="#aplicarFiltroDesdeUI" styleClass="dark-input" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="3" />
 
             <Label fx:id="fechaInicioLabel" text="Fecha inicio" visible="false" managed="false" styleClass="input-label" GridPane.rowIndex="2" GridPane.columnIndex="0" />

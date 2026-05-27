@@ -350,13 +350,15 @@ public class RentabilidadController {
             contadorBajoMargenLabel.setText("Incidencias encontradas: " + lineasBajoMargen.size());
             
             if (!lineasBajoMargen.isEmpty()) {
-                ConsolaErroresDialog.mostrarInfo(
+                ConsolaErroresDialog.mostrarInfoConOpcionNoMostrar(
+                    ConsolaErroresDialog.CLAVE_ANALISIS_MARGEN,
                     "Análisis de Margen",
                     "Se encontraron " + lineasBajoMargen.size() + 
                     " líneas de pedido por debajo del margen mínimo requerido."
                 );
             } else {
-                ConsolaErroresDialog.mostrarInfo(
+                ConsolaErroresDialog.mostrarInfoConOpcionNoMostrar(
+                    ConsolaErroresDialog.CLAVE_ANALISIS_MARGEN,
                     "Análisis de Margen",
                     "Todas las líneas cumplen el margen mínimo requerido. ✓"
                 );
@@ -389,12 +391,14 @@ public class RentabilidadController {
             desviacionesZonasTableView.setItems(FXCollections.observableArrayList(filas));
 
             if (filas.isEmpty()) {
-                ConsolaErroresDialog.mostrarInfo(
+                ConsolaErroresDialog.mostrarInfoConOpcionNoMostrar(
+                    ConsolaErroresDialog.CLAVE_DESVIACIONES_ZONAS,
                     "Desviaciones por Zona",
                     "No hay zonas comerciales cargadas o no existen datos para calcular desviaciones."
                 );
             } else {
-                ConsolaErroresDialog.mostrarInfo(
+                ConsolaErroresDialog.mostrarInfoConOpcionNoMostrar(
+                    ConsolaErroresDialog.CLAVE_DESVIACIONES_ZONAS,
                     "Desviaciones por Zona",
                     "Se cargaron " + filas.size() + " zonas con su desviación respecto al objetivo."
                 );
@@ -487,6 +491,7 @@ public class RentabilidadController {
 
             ZonaComercial zona = new ZonaComercial(id, nombre, pais, responsable, objetivo);
             repoZonas.save(zona);
+            ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
 
             refrescarGestion();
             refrescarGraficas();
@@ -514,6 +519,7 @@ public class RentabilidadController {
         }
 
         if (repoZonas.delete(id)) {
+            ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
             refrescarGestion();
             refrescarGraficas();
             ConsolaErroresDialog.mostrarInfo("Zona comercial", "Zona eliminada correctamente.");
@@ -551,6 +557,7 @@ public class RentabilidadController {
 
             ReglaMargen regla = new ReglaMargen(id, categoria, margen, activa, descripcion);
             repoReglas.save(regla);
+            ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
 
             refrescarGestion();
             refrescarGraficas();
@@ -578,6 +585,7 @@ public class RentabilidadController {
         }
 
         if (repoReglas.delete(id)) {
+            ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
             refrescarGestion();
             refrescarGraficas();
             ConsolaErroresDialog.mostrarInfo("Regla de margen", "Regla eliminada correctamente.");
@@ -603,6 +611,8 @@ public class RentabilidadController {
     // ==================== MÉTODOS CRUD ORIGINALES ====================
 
     public void cargarDatos() {
+        boolean datosModificados = false;
+
         //carga zona
         List<ZonaComercial>zonas=repoZonas.findAll();
         if(zonas.isEmpty()){
@@ -614,6 +624,7 @@ public class RentabilidadController {
                         //save a repozonas
                         repoZonas.save(z);
                     }
+                    datosModificados = !zonaComercialsCSv.isEmpty();
                 } catch (Exception e) {
                     System.out.println("Aviso: no se pudo cargar data/zonas.csv. Se continuará con la lista vacía. Detalle: " + e.getMessage());
                 }
@@ -633,6 +644,7 @@ public class RentabilidadController {
                     for (ReglaMargen r : reglasCSV) {
                         repoReglas.save(r);
                     }
+                    datosModificados = datosModificados || !reglasCSV.isEmpty();
                 } catch (Exception e) {
                     System.out.println("Aviso: no se pudo cargar data/reglas.csv. Se continuará con la lista vacía. Detalle: " + e.getMessage());
                 }
@@ -641,6 +653,10 @@ public class RentabilidadController {
             }
         } else {
             System.out.println("Reglas cargadas desde JSON correctamente.");
+        }
+
+        if (datosModificados) {
+            ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
         }
     }
     //C
@@ -651,11 +667,13 @@ public class RentabilidadController {
         }
         ZonaComercial nuevaZona = (ZonaComercial) obj;
         repoZonas.save(nuevaZona);
+        ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
         System.out.println("Zona guardada correctamente.");
     }
 
     public void addMarginRule(ReglaMargen nuevaRegla) {
         repoReglas.save(nuevaRegla);
+        ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
         System.out.println("Regla de margen guardada correctamente.");
     }
     //R
@@ -671,6 +689,7 @@ public class RentabilidadController {
         boolean exito = repoZonas.delete(id);
         
         if (exito) {
+            ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
             System.out.println(" Zona comercial con ID " + id + " eliminada correctamente.");
         } else {
             System.out.println(" Error: No encontró la zona con ID " + id + ".");
@@ -681,6 +700,7 @@ public class RentabilidadController {
         boolean exito = repoReglas.delete(id);
         
         if (exito) {
+            ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
             System.out.println("Regla de margen con ID " + id + " eliminada correctamente.");
         } else {
             System.out.println("Error: No se encontró la regla con ID " + id + ".");
@@ -700,6 +720,7 @@ public class RentabilidadController {
         zonaExistente.setResponsableComercial(nuevoResponsable);
 
         repoZonas.save(zonaExistente);
+        ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
         System.out.println("Zona actualizada correctamente.");
     }
 
@@ -716,6 +737,7 @@ public class RentabilidadController {
         reglaExistente.setDescripcion(nuevaDescripcion);
 
         repoReglas.save(reglaExistente);
+        ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
         System.out.println("Regla de margen actualizada correctamente.");
     }
 
@@ -808,7 +830,7 @@ public class RentabilidadController {
 
     private String obtenerTipoFiltroGraficaMensual() {
         SesionUsuario sesion = SesionAplicacion.obtener();
-        if (sesion != null && sesion.esComercial() && sesion.zonaComercial() != null) {
+        if (sesion != null && sesion.esComercial() && sesion.zonasComerciales() != null && !sesion.zonasComerciales().isEmpty()) {
             return "Zona Comercial";
         }
 
@@ -825,8 +847,12 @@ public class RentabilidadController {
 
     private String obtenerValorFiltroGraficaMensual() {
         SesionUsuario sesion = SesionAplicacion.obtener();
-        if (sesion != null && sesion.esComercial() && sesion.zonaComercial() != null) {
-            return String.valueOf(sesion.zonaComercial());
+        if (sesion != null && sesion.esComercial() && sesion.zonasComerciales() != null && !sesion.zonasComerciales().isEmpty()) {
+            // Si solo tiene una zona asignada, devolverla; si tiene varias, dejar el filtro en null
+            if (sesion.zonasComerciales().size() == 1) {
+                return String.valueOf(sesion.zonasComerciales().get(0));
+            }
+            return null;
         }
 
         String valorFiltro = exploradorController.getValorFiltroSeleccionado();

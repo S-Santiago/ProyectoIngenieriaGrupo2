@@ -105,10 +105,11 @@ public class ExploradorController {
     }
 
     public void aplicarSesion(SesionUsuario sesion) {
-        if (sesion != null && sesion.esComercial() && sesion.zonaComercial() != null) {
-            zonaComercialForzada = sesion.zonaComercial();
-            filtroComercialBloqueado = true;
-            fijarFiltroZonaComercial(sesion.zonaComercial(), true);
+        if (sesion != null && sesion.esComercial() && sesion.zonasComerciales() != null && !sesion.zonasComerciales().isEmpty()) {
+            // Usuario comercial con una o varias zonas: no forzamos un único valor en la UI,
+            // pero las vistas filtrarán los pedidos por las zonas asignadas.
+            zonaComercialForzada = null;
+            filtroComercialBloqueado = false;
         } else {
             desbloquearFiltroComercial();
         }
@@ -155,13 +156,13 @@ public class ExploradorController {
         }
 
         SesionUsuario sesion = SesionAplicacion.obtener();
-        if (sesion == null || sesion.esDirectorFinanciero() || sesion.zonaComercial() == null) {
+        if (sesion == null || sesion.esDirectorFinanciero() || sesion.zonasComerciales() == null || sesion.zonasComerciales().isEmpty()) {
             return new ArrayList<>(lineas);
         }
 
-        int zonaSesion = sesion.zonaComercial();
+        var zonasPermitidas = sesion.zonasComerciales();
         return lineas.stream()
-            .filter(pedido -> pedido != null && pedido.getZonaComercial() != null && pedido.getZonaComercial() == zonaSesion)
+            .filter(pedido -> pedido != null && pedido.getZonaComercial() != null && zonasPermitidas.contains(pedido.getZonaComercial()))
             .collect(Collectors.toList());
     }
 

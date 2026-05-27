@@ -1,7 +1,14 @@
-# Visión General de la Arquitectura
-Este repositorio implementa una arquitectura en capas con patrón MVC, reforzada por una separación clara entre interfaz, lógica de negocio y persistencia. La aplicación se puede iniciar tanto por GUI como por CLI desde `app/`, pero ambas entradas convergen en los controladores compartidos de `controller/`, que coordinan la carga de pedidos, el filtrado, el cálculo de KPIs y el análisis de rentabilidad. Los datos transaccionales se importan desde CSV, mientras que la configuración de negocio se mantiene en JSON y los resultados se exportan a Excel.
+# Documentación V2
+Esta versión del analizador está orientada a una aplicación de escritorio JavaFX con arquitectura MVC por capas. La entrada principal pasa por un login modal, crea una sesión de usuario y, a partir de esa sesión, habilita o restringe funcionalidades según el rol. El núcleo funcional sigue siendo el análisis de líneas de pedido, el cálculo de KPIs y la gestión comercial de zonas y reglas de margen.
 
-# Estructura del Proyecto
+## Visión General
+La aplicación trabaja con tres tipos de datos claramente separados.
+
+Los datos transaccionales son las líneas de pedido, que se importan desde CSV y se visualizan en el explorador. Los datos maestros de negocio son las zonas comerciales y las reglas de margen, que se almacenan en JSON y también pueden cargarse desde CSV como respaldo. La salida analítica se presenta en tablas, gráficas y exportaciones XLSX.
+
+La V2 incorpora control de acceso por rol. El rol `COMERCIAL` queda limitado a su zona comercial y no puede acceder a la gestión completa de reglas y zonas, mientras que el rol `DIRECTOR_FINANCIERO` mantiene acceso total a los paneles de análisis y mantenimiento.
+
+## Estructura del Proyecto
 ```text
 src/
 ├── app/
@@ -13,8 +20,13 @@ src/
 │   ├── CalculadoraFinanciera.java
 │   ├── ExploradorController.java
 │   ├── ImportKpiController.java
+│   ├── LoginController.java
+│   ├── LoginCredentialsValidator.java
 │   ├── NavigationController.java
-│   └── RentabilidadController.java
+│   ├── RentabilidadController.java
+│   ├── RolUsuario.java
+│   ├── SesionAplicacion.java
+│   └── SesionUsuario.java
 ├── model/
 │   ├── EstadoPedido.java
 │   ├── LineaPedido.java
@@ -27,7 +39,17 @@ src/
 │   └── JsonRepositoryZonaComercial.java
 ├── resources/
 │   ├── data/
+│   │   ├── lineas_pedidos.csv
+│   │   ├── reglas.csv
+│   │   ├── reglas.json
+│   │   ├── zonas.csv
+│   │   └── zonas.json
 │   └── fxml/
+│       ├── explorador_pedidos.fxml
+│       ├── importacion_kpis.fxml
+│       ├── login.fxml
+│       ├── main.fxml
+│       └── panel_rentabilidad.fxml
 ├── test/
 │   └── java/
 └── view/
@@ -35,88 +57,97 @@ src/
     └── VistaManager.java
 ```
 
-# Referencia de Módulos y Archivos
+## Arranque Y Flujo De Ejecución
+### `app/Main.java`
+Punto de entrada de la aplicación. Fuerza el renderizado por software en Mac y lanza la clase JavaFX principal.
 
-## App
+### `app/AppFX.java`
+Gestiona el arranque visual. Primero abre el login modal, valida credenciales, guarda la sesión y, solo si la autenticación es correcta, carga los datos persistentes y la vista principal.
 
-### `Main.java`
-Punto de entrada principal de la aplicación. Pregunta al usuario si desea arrancar en GUI o CLI y delega en `AppFX` o `CliEngine` según la opción elegida.
-También fuerza el renderizado por software en la ruta gráfica para evitar problemas de compatibilidad en algunos entornos Mac.
+## Control De Acceso
+### `controller/LoginController.java`
+Controla la pantalla de acceso. Solicita usuario y contraseña, invoca el validador y, si la autenticación es correcta, cierra el modal y entrega la sesión a la aplicación.
 
-### `AppFX.java`
-Clase de arranque JavaFX. Antes de mostrar la ventana principal invoca `RentabilidadController.cargarDatos()` para inicializar la persistencia de zonas y reglas desde JSON o CSV.
-Después carga la escena raíz `main.fxml` y establece la ventana principal del sistema.
+### `controller/LoginCredentialsValidator.java`
+Contiene las credenciales de prueba usadas por la V2 y construye la sesión autenticada con usuario, rol y zona comercial asociada.
 
-## Cli
+### `controller/RolUsuario.java`
+Define los roles disponibles: `COMERCIAL` y `DIRECTOR_FINANCIERO`.
 
-### `CliEngine.java`
-Motor interactivo de línea de comandos. Orquesta importación de pedidos desde CSV, navegación por filtros, consulta de KPIs y exportación a Excel usando los controladores compartidos.
-Mantiene el último resultado visible para exportarlo y aplica límites de salida por pantalla para no saturar la consola.
+### `controller/SesionUsuario.java` y `controller/SesionAplicacion.java`
+Representan la sesión activa y su almacenamiento global durante la ejecución. Se usan para aplicar restricciones de navegación, filtrado y acceso a la gestión.
 
-## Controller
+## Navegación Y Vistas
+### `controller/NavigationController.java`
+Coordina la carga dinámica de las tres vistas funcionales principales: explorador de pedidos, importación de KPIs y panel de rentabilidad. También adapta la visibilidad de botones según el rol autenticado.
 
-### `CalculadoraFinanciera.java`
-Contiene la lógica de cálculo financiero: margen bruto total, rankings por categoría, ranking por facturación y detección de líneas por debajo del margen mínimo definido por regla activa.
-También calcula desviaciones respecto a objetivos de facturación por zona comercial, leyendo las entidades persistidas desde `JsonRepositoryReglaMargen` y `JsonRepositoryZonaComercial`.
+### `controller/ExploradorController.java`
+Es el núcleo de trabajo con pedidos. Carga el CSV inicial en segundo plano, valida líneas, mantiene errores de validación y expone filtros por categoría, zona comercial, estado y fecha. En sesión comercial, fuerza la zona permitida y bloquea su cambio.
 
-### `ExploradorController.java`
-Es el controlador central para cargar, validar y filtrar pedidos. Usa un patrón Singleton para compartir el mismo conjunto de líneas entre GUI y CLI, y expone filtros por categoría, zona, estado y rango de fechas.
-Además, enlaza la tabla JavaFX con los datos importados desde CSV y mantiene una lista de errores de validación que se reutiliza en la interfaz y en la consola.
+### `controller/ImportKpiController.java`
+Calcula KPIs globales y por categoría a partir de los pedidos cargados. También permite importar un CSV nuevo y exportar la información visible a Excel.
 
-### `ImportKpiController.java`
-Gestiona la vista de importación y consulta de KPIs globales y por categoría. Calcula totales, márgenes, porcentajes y series mensuales a partir de los pedidos cargados en el explorador.
-Incluye acciones de importar CSV y exportar a Excel, y define filas auxiliares internas para alimentar las tablas de la interfaz.
+### `controller/RentabilidadController.java`
+Presenta el análisis avanzado de rentabilidad. Incluye ranking de categorías, detección de líneas por debajo del margen mínimo, desviaciones frente al objetivo de zona y gestión de zonas y reglas. La parte de mantenimiento queda deshabilitada para el rol comercial.
 
-### `NavigationController.java`
-Controla la navegación entre las vistas principales de la aplicación JavaFX. Carga dinámicamente los FXML de explorador, importación de KPIs y rentabilidad dentro del contenedor central.
-Su responsabilidad es puramente de coordinación de UI: resuelve recursos, asigna controladores y gestiona errores de carga de vistas.
+### `view/VistaManager.java`
+Funciona como apoyo para abrir pantallas JavaFX concretas cuando hace falta cambiar de vista desde otra capa.
 
-### `RentabilidadController.java`
-Presenta el panel de rentabilidad avanzada con tres bloques de análisis: ranking de categorías, líneas por debajo del margen mínimo y desviaciones de zonas comerciales.
-Además de refrescar la vista, conserva una lógica heredada de carga y mantenimiento de zonas/reglas en JSON, con respaldo desde CSV cuando los repositorios están vacíos.
+### `view/ConsolaErroresDialog.java`
+Centraliza la presentación de errores, advertencias e información al usuario mediante diálogos JavaFX.
 
-## Model
+## Lógica De Negocio
+### `controller/CalculadoraFinanciera.java`
+Encapsula los cálculos financieros reutilizados por el resto de controladores. Calcula margen bruto total, rankings de facturación y margen por categoría, líneas bajo margen mínimo y desviación de zonas comerciales frente a su objetivo.
 
-### `EstadoPedido.java`
-Enumera los estados válidos de un pedido: completado, cancelado y pendiente. También ofrece una conversión segura desde texto mediante `fromString`, usada por el importador CSV.
-Actúa como catálogo tipado para evitar que la lógica de control trabaje con cadenas libres.
+## Modelo De Dominio
+### `model/LineaPedido.java`
+Representa una línea de pedido con información de producto, categoría, importes, unidades, fecha, zona comercial y estado.
 
-### `LineaPedido.java`
-Modelo principal del dominio transaccional. Representa una línea de pedido con identificadores, descripción, categoría, costes, precio de venta, unidades, fecha, zona comercial y estado.
-Sirve como DTO de negocio para importación CSV, filtrado, cálculo de rentabilidad y exportación.
+### `model/EstadoPedido.java`
+Enumera los estados válidos de un pedido y ofrece conversión desde texto para la importación CSV.
 
-### `ReglaMargen.java`
-Modelo de configuración de negocio para definir el margen mínimo exigido a una categoría concreta. Guarda el identificador, la categoría afectada, el porcentaje mínimo, la activación de la regla y una descripción.
-Es la base de la validación de líneas bajo margen en el panel de rentabilidad.
+### `model/ReglaMargen.java`
+Modela la regla de margen mínima asociada a una categoría, junto con su activación y descripción.
 
-### `ZonaComercial.java`
-Entidad de configuración comercial que describe una zona, su país, el responsable y el objetivo anual de facturación. Se persiste en JSON y se usa como referencia para calcular desviaciones frente al objetivo.
-Su estructura permite cruzar datos maestros con los pedidos importados.
+### `model/ZonaComercial.java`
+Describe una zona comercial con nombre, país, responsable y objetivo anual de facturación.
 
-## Persistence
+## Persistencia E I/O
+### `persistence/CsvImporter.java`
+Importa líneas de pedido, zonas y reglas desde CSV con validación de cabeceras, tipos, formatos de fecha y estados. Devuelve únicamente los registros válidos y registra avisos de rechazo.
 
-### `CsvImporter.java`
-Implementa la importación robusta de CSV para líneas de pedido, zonas comerciales y reglas de margen. Valida cabeceras, número de columnas, tipos numéricos, fechas y estados antes de construir los objetos de dominio.
-Normaliza fechas y decimales para admitir formatos habituales de intercambio y devuelve solo registros válidos, registrando avisos en consola para las filas rechazadas.
+### `persistence/ExcelExporter.java`
+Exporta colecciones a XLSX mediante Apache POI para facilitar la entrega de resultados en formato tabular.
 
-### `ExcelExporter.java`
-Exporta colecciones de `LineaPedido`, `ReglaMargen` y `ZonaComercial` a archivos XLSX mediante Apache POI. Crea una hoja por tipo de entidad y escribe cabeceras explícitas para facilitar la lectura en Excel.
-Su foco es la salida tabular simple, sin lógica de negocio adicional.
+### `persistence/JsonRepositoryReglaMargen.java`
+Gestiona la persistencia de reglas de margen en JSON.
 
-### `JsonRepositoryReglaMargen.java`
-Repositorio local de reglas de margen basado en Jackson y un fichero `data/reglas.json`. Carga la colección al construir el repositorio y ofrece operaciones CRUD simples sobre la lista en memoria.
-Cuando se guardan o eliminan reglas, persiste inmediatamente el estado actualizado en disco.
+### `persistence/JsonRepositoryZonaComercial.java`
+Gestiona la persistencia de zonas comerciales en JSON.
 
-### `JsonRepositoryZonaComercial.java`
-Repositorio local de zonas comerciales con el mismo enfoque que el de reglas: lectura inicial desde `data/zonas.json`, CRUD en memoria y persistencia automática al modificar datos.
-Además de almacenar las entidades, valida campos clave como ID, nombre y objetivo de facturación antes de escribir el fichero.
+## Recursos Y Datos
+La carpeta `resources/fxml/` contiene las pantallas visibles de la aplicación: login, explorador, importación de KPIs y rentabilidad, más la vista principal que actúa como contenedor.
 
-## View
+La carpeta `resources/data/` incluye los datos de arranque y ejemplo usados por la aplicación: `lineas_pedidos.csv`, `zonas.csv`, `reglas.csv`, `zonas.json` y `reglas.json`.
 
-### `ConsolaErroresDialog.java`
-Utilidad de presentación de mensajes basada en `JOptionPane`. Centraliza la visualización de errores, avisos de validación y mensajes informativos para la interfaz gráfica.
-Evita repetir código de diálogo en los controladores y unifica el estilo de feedback al usuario.
+## Pruebas
+La V2 incluye pruebas JUnit 5 para validar piezas clave del sistema, entre ellas:
 
-### `VistaManager.java`
-Pequeño gestor de navegación entre pantallas JavaFX cuando la aplicación se lanza en modo ventana. Carga FXML específicos, asigna controladores cuando es necesario y cambia el `Stage` principal.
-Su papel complementa a `NavigationController` como punto de acceso reutilizable para abrir vistas concretas desde otras capas.
+* validación de credenciales de acceso;
+* cálculo de KPIs mensuales;
+* comportamiento del panel de rentabilidad;
+* importación CSV;
+* exportación Excel;
+* repositorios JSON.
+
+## Dependencias Y Build
+El proyecto se compila con Maven para Java 21 y usa estas dependencias principales:
+
+* JavaFX para la interfaz;
+* Jackson para JSON;
+* Apache POI para Excel;
+* JUnit Jupiter para pruebas.
+
+## Resumen Funcional
+La V2 consolida el flujo completo de trabajo: acceso autenticado, carga de pedidos, filtrado y análisis de rentabilidad, visualización de KPIs, exportación de resultados y mantenimiento de reglas y zonas con control de permisos por rol.

@@ -25,11 +25,11 @@
          </columnConstraints>
          <children>
             <Label text="Tipo de filtro" styleClass="input-label" GridPane.rowIndex="0" GridPane.columnIndex="0" />
-            <ComboBox fx:id="tipoFiltroComboBox" prefWidth="240.0" onAction="#actualizarControlesFiltro" styleClass="dark-input" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+            <ComboBox fx:id="tipoFiltroComboBox" prefWidth="240.0" styleClass="dark-input" GridPane.rowIndex="0" GridPane.columnIndex="1" />
 
             <Label fx:id="valorFiltroLabel" text="Categoría" styleClass="input-label" GridPane.rowIndex="1" GridPane.columnIndex="0" />
-            <ComboBox fx:id="valorFiltroComboBox" prefWidth="240.0" onAction="#aplicarFiltroDesdeUI" styleClass="dark-input" GridPane.rowIndex="1" GridPane.columnIndex="1" />
-            <TextField fx:id="valorFiltroTextField" promptText="Escribe la categoría..." onAction="#aplicarFiltroDesdeUI" styleClass="dark-input" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="3" />
+            <ComboBox fx:id="valorFiltroComboBox" prefWidth="240.0" styleClass="dark-input" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+            <TextField fx:id="valorFiltroTextField" promptText="Escribe la categoría..." styleClass="dark-input" GridPane.rowIndex="1" GridPane.columnIndex="1" GridPane.columnSpan="3" />
 
             <Label fx:id="fechaInicioLabel" text="Fecha inicio" visible="false" managed="false" styleClass="input-label" GridPane.rowIndex="2" GridPane.columnIndex="0" />
             <DatePicker fx:id="fechaInicioDatePicker" visible="false" managed="false" styleClass="dark-input" GridPane.rowIndex="2" GridPane.columnIndex="1" />
@@ -41,7 +41,6 @@
 
       <HBox spacing="12.0">
          <children>
-            <Button text="Aplicar filtro" onAction="#aplicarFiltroDesdeUI" styleClass="action-button" />
             <Button text="Limpiar" onAction="#limpiarFiltros" styleClass="action-button" />
          </children>
       </HBox>

@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.StringReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -33,6 +34,19 @@ class CsvImporterTest {
         assertEquals(1, resultado.getAvisos().size());
         assertTrue(resultado.getAvisos().get(0).contains("Fila 3"));
     }
+
+        @Test
+        void importaLineasDesdeReaderParaSoportarRecursosEmpaquetados() {
+                String csv = String.join(System.lineSeparator(),
+                                "idLinea,idPedido,referenciaProduto,descripcionProducto,categoria,costeUnitario,precioVentaUnitario,unidades,fechaPedido,zonaComercial,estado",
+                                "3,102,PROD-3,Producto recurso,Electrónica,12.50,24.00,1,2025-01-16,2,completado");
+
+                CsvImporter importer = new CsvImporter();
+                CsvImporter.ImportResult<LineaPedido> resultado = importer.importCSVLineaPedidosConAvisos(new StringReader(csv));
+
+                assertEquals(1, resultado.getElementos().size());
+                assertTrue(resultado.getAvisos().isEmpty());
+        }
 
     @Test
     void importaZonasOrdenadasPorIdAunqueElCsvVengaDesordenado() throws Exception {

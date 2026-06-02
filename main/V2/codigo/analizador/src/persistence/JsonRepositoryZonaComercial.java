@@ -10,14 +10,16 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import model.ZonaComercial;
 
 public class JsonRepositoryZonaComercial {
-    private static final Path DATA_DIRECTORY = Paths.get("data");
+    private static final Path DATA_DIRECTORY = Paths.get("src", "resources", "data");
     private static final Path FILE_PATH = DATA_DIRECTORY.resolve("zonas.json");
-    private final ObjectMapper mapper = new ObjectMapper();
+        private final ObjectMapper mapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private final List<ZonaComercial> zonasComerciales;
 
     public JsonRepositoryZonaComercial() {
@@ -79,7 +81,7 @@ public class JsonRepositoryZonaComercial {
         try {
             Files.createDirectories(DATA_DIRECTORY);
         } catch (IOException e) {
-            System.err.println("No se pudo crear el directorio data: " + e.getMessage());
+            System.err.println("No se pudo crear el directorio src/resources/data: " + e.getMessage());
             return new ArrayList<>();
         }
 
@@ -87,6 +89,58 @@ public class JsonRepositoryZonaComercial {
         if (Files.exists(FILE_PATH)) {
             try {
                 List<ZonaComercial> leidas = mapper.readValue(FILE_PATH.toFile(), new TypeReference<List<ZonaComercial>>() {});
+                // Si la lectura directa produjo objetos sin ID (por ejemplo porque el JSON usa "idZona"),
+                // intentaremos una conversión alternativa leyendo como mapas.
+                boolean anyIdPresent = false;
+                for (ZonaComercial z : leidas) {
+                    if (z != null && z.getId() != null) { anyIdPresent = true; break; }
+                }
+
+                if (!anyIdPresent && !leidas.isEmpty()) {
+                    // Intentar conversión alternativa desde el JSON crudo
+                    try {
+                        List<java.util.Map<String, Object>> raw = mapper.readValue(FILE_PATH.toFile(), new TypeReference<List<java.util.Map<String, Object>>>() {});
+                        List<ZonaComercial> conv = new ArrayList<>();
+                        for (java.util.Map<String, Object> m : raw) {
+                            if (m == null) continue;
+                            Integer id = null;
+                            Object idObj = m.getOrDefault("id", m.get("idZona"));
+                            if (idObj instanceof Number) id = ((Number) idObj).intValue();
+                            else if (idObj instanceof String) {
+                                try { id = Integer.valueOf((String) idObj); } catch (NumberFormatException ex) {}
+                            }
+
+                            String nombre = (String) m.getOrDefault("nombre", m.get("nombreZona"));
+                            String pais = (String) m.getOrDefault("pais", "");
+                            String responsable = (String) m.getOrDefault("responsableComercial", m.get("responsable"));
+                            Double objetivo = null;
+                            Object objObj = m.getOrDefault("objetivoFacturacionAnual", m.get("objetivo"));
+                            if (objObj instanceof Number) objetivo = ((Number) objObj).doubleValue();
+                            else if (objObj instanceof String) {
+                                try { objetivo = Double.valueOf((String) objObj); } catch (NumberFormatException ex) {}
+                            }
+
+                            ZonaComercial z = new ZonaComercial();
+                            z.setId(id);
+                            z.setNombre(nombre);
+                            z.setPais(pais != null ? pais : "");
+                            z.setResponsableComercial(responsable != null ? responsable : "");
+                            z.setObjetivoFacturacionAnual(objetivo != null ? objetivo : 0);
+                            conv.add(z);
+                        }
+                        try {
+                            mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), conv);
+                        } catch (IOException ex) {
+                            System.err.println("No se pudo escribir zonas.json convertido en src/resources/data: " + ex.getMessage());
+                        }
+                        System.out.println("[JsonRepositoryZonaComercial] Convertidas y leídas " + conv.size() + " zonas desde disco (formato alternativo)");
+                        return conv;
+                    } catch (IOException ex2) {
+                        System.err.println("Error al convertir zonas.json desde disco (fase alternativa): " + ex2.getMessage());
+                        return new ArrayList<>();
+                    }
+                }
+
                 // Eliminar duplicados por ID manteniendo el primero encontrado
                 java.util.Map<Integer, ZonaComercial> porId = new java.util.LinkedHashMap<>();
                 for (ZonaComercial z : leidas) {
@@ -97,37 +151,10 @@ public class JsonRepositoryZonaComercial {
                 System.out.println("[JsonRepositoryZonaComercial] Leídas " + resultado.size() + " zonas desde disco: " + FILE_PATH.toAbsolutePath());
                 return resultado;
             } catch (IOException e) {
-                System.err.println("Error al leer zonas.json desde disco: " + e.getMessage());
-                return new ArrayList<>();
-            }
-        }
-
-        // Si no existe en disco, intentar cargar desde recursos empaquetados (classpath)
-        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("data/zonas.json")) {
-            if (is != null) {
-                // Intentar mapear directamente
+                System.err.println("Error al leer zonas.json desde disco (lectura directa): " + e.getMessage());
+                // Intentar leer como lista de mapas y convertir campos alternativos
                 try {
-                    List<ZonaComercial> leidas = mapper.readValue(is, new TypeReference<List<ZonaComercial>>() {});
-                    java.util.Map<Integer, ZonaComercial> porId = new java.util.LinkedHashMap<>();
-                    for (ZonaComercial z : leidas) {
-                        if (z == null || z.getId() == null) continue;
-                        porId.putIfAbsent(z.getId(), z);
-                    }
-                    List<ZonaComercial> resultado = new ArrayList<>(porId.values());
-                    try {
-                        mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), resultado);
-                    } catch (IOException e) {
-                        System.err.println("No se pudo copiar zonas.json desde recursos a disco: " + e.getMessage());
-                    }
-                    System.out.println("[JsonRepositoryZonaComercial] Leídas " + resultado.size() + " zonas desde recursos (formato directo)");
-                    return resultado;
-                } catch (IOException ignore) {
-                    // probar formato alternativo
-                }
-
-                try (InputStream is2 = Thread.currentThread().getContextClassLoader().getResourceAsStream("data/zonas.json")) {
-                    if (is2 == null) return new ArrayList<>();
-                    List<java.util.Map<String, Object>> raw = mapper.readValue(is2, new TypeReference<List<java.util.Map<String, Object>>>() {});
+                    List<java.util.Map<String, Object>> raw = mapper.readValue(FILE_PATH.toFile(), new TypeReference<List<java.util.Map<String, Object>>>() {});
                     List<ZonaComercial> conv = new ArrayList<>();
                     for (java.util.Map<String, Object> m : raw) {
                         if (m == null) continue;
@@ -135,37 +162,42 @@ public class JsonRepositoryZonaComercial {
                         Object idObj = m.getOrDefault("id", m.get("idZona"));
                         if (idObj instanceof Number) id = ((Number) idObj).intValue();
                         else if (idObj instanceof String) {
-                            try { id = Integer.valueOf((String) idObj); } catch (NumberFormatException e) {}
+                            try { id = Integer.valueOf((String) idObj); } catch (NumberFormatException ex) {}
                         }
 
-                        String nombre = (String) m.get("nombre");
-                        String descripcion = (String) m.get("descripcion");
+                        String nombre = (String) m.getOrDefault("nombre", m.get("nombreZona"));
+                        String pais = (String) m.getOrDefault("pais", "");
+                        String responsable = (String) m.getOrDefault("responsableComercial", m.get("responsable"));
+                        Double objetivo = null;
+                        Object objObj = m.getOrDefault("objetivoFacturacionAnual", m.get("objetivo"));
+                        if (objObj instanceof Number) objetivo = ((Number) objObj).doubleValue();
+                        else if (objObj instanceof String) {
+                            try { objetivo = Double.valueOf((String) objObj); } catch (NumberFormatException ex) {}
+                        }
 
                         ZonaComercial z = new ZonaComercial();
                         z.setId(id);
                         z.setNombre(nombre);
-                        // Rellenar campos faltantes con valores por defecto o con la descripción
-                        z.setPais("");
-                        z.setResponsableComercial(descripcion != null ? descripcion : "");
-                        z.setObjetivoFacturacionAnual(0);
+                        z.setPais(pais != null ? pais : "");
+                        z.setResponsableComercial(responsable != null ? responsable : "");
+                        z.setObjetivoFacturacionAnual(objetivo != null ? objetivo : 0);
                         conv.add(z);
                     }
                     try {
                         mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), conv);
-                    } catch (IOException e) {
-                        System.err.println("No se pudo copiar zonas.json convertido a disco: " + e.getMessage());
+                    } catch (IOException ex) {
+                        System.err.println("No se pudo escribir zonas.json convertido en src/resources/data: " + ex.getMessage());
                     }
-                    System.out.println("[JsonRepositoryZonaComercial] Convertidas y leídas " + conv.size() + " zonas desde recursos (formato alternativo)");
+                    System.out.println("[JsonRepositoryZonaComercial] Convertidas y leídas " + conv.size() + " zonas desde disco (formato alternativo)");
                     return conv;
-                } catch (IOException e) {
-                    System.err.println("Error al leer zonas.json desde recursos (formato alternativo): " + e.getMessage());
+                } catch (IOException ex2) {
+                    System.err.println("Error al convertir zonas.json desde disco: " + ex2.getMessage());
                     return new ArrayList<>();
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Error al acceder a recursos para zonas.json: " + e.getMessage());
         }
-
+        // Si no existe en disco, devolver vacío (no hacemos fallback a classpath en V2)
+        System.out.println("Aviso: el JSON de zonas está vacío o no existe.");
         return new ArrayList<>();
     }
 
@@ -175,12 +207,12 @@ public class JsonRepositoryZonaComercial {
             ordenarPorId();
             mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), zonasComerciales);
         } catch (IOException e) {
-            System.err.println("Error al guardar zonas.json: " + e.getMessage());
+            System.err.println("Error al guardar zonas.json en src/resources/data: " + e.getMessage());
         }
     }
 
     private void ordenarPorId() {
-        zonasComerciales.sort(Comparator.comparing(ZonaComercial::getId));
+        zonasComerciales.sort(Comparator.comparing(ZonaComercial::getId, Comparator.nullsLast(Comparator.naturalOrder())));
     }
 
     private Integer parseId(String id) {

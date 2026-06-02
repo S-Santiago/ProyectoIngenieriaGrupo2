@@ -3,6 +3,7 @@ package persistence;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -50,64 +51,78 @@ public class CsvImporter {
     }
 
     public ImportResult<LineaPedido> importCSVLineaPedidosConAvisos(String filePath) {
-        List<LineaPedido> lineasPedido = new ArrayList<>();
-        List<String> avisos = new ArrayList<>();
-        int contadorLineas = 0;
         try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                contadorLineas++;
-                if (line.trim().isEmpty()) {
-                    continue;
-                }
-                if (esCabeceraLineaPedido(line)) {
-                    continue;
-                }
-                try {
-                    List<String> values = parseCsvLine(line);
-                    if (values.size() != 11) {
-                        throw new IllegalArgumentException("Número de columnas inválido. Se esperaban 11 y se recibieron " + values.size());
-                    }
-
-                    int idLinea = parseEnteroPositivo(values.get(0), "ID de línea", contadorLineas, 1);
-                    int idPedido = parseEnteroPositivo(values.get(1), "ID de pedido", contadorLineas, 2);
-                    String referenciaProducto = valorNoVacio(values.get(2), "Referencia de producto", contadorLineas, 3);
-                    String descripcionProducto = valorNoVacio(values.get(3), "Descripción de producto", contadorLineas, 4);
-                    String categoria = valorNoVacio(values.get(4), "Categoría", contadorLineas, 5);
-                    BigDecimal costeUnitario = parseDecimalPositivo(values.get(5), "Coste unitario", contadorLineas, 6);
-                    BigDecimal precioVentaUnitario = parseDecimalPositivo(values.get(6), "Precio de venta unitario", contadorLineas, 7);
-                    int unidades = parseEnteroPositivo(values.get(7), "Número de unidades", contadorLineas, 8);
-                    String fechaPedido = parseFechaFlexible(values.get(8), "Fecha de pedido", contadorLineas, 9);
-                    int zonaComercial = parseEnteroPositivo(values.get(9), "Zona comercial", contadorLineas, 10);
-                    EstadoPedido estado = parseEstadoPedido(values.get(10), contadorLineas, 11);
-
-                    LineaPedido linea = new LineaPedido(
-                        idLinea,
-                        idPedido,
-                        referenciaProducto,
-                        descripcionProducto,
-                        categoria,
-                        costeUnitario,
-                        precioVentaUnitario,
-                        unidades,
-                        fechaPedido,
-                        zonaComercial,
-                        estado
-                    );
-                    lineasPedido.add(linea);
-                } catch (IllegalArgumentException e) {
-                    avisos.add("Fila " + contadorLineas + ": " + e.getMessage());
-                    System.out.println("Aviso: línea inválida en fila " + contadorLineas + ": " + e.getMessage());
-                }
-            }
+            return importCSVLineaPedidosConAvisos(br);
         } 
         catch (IOException e) {
             System.err.println("Error al importar líneas de pedido: " + e.getMessage());
         }
-        finally {
-            System.out.println("Número total de líneas procesadas: " + contadorLineas);
-            System.out.println("Número total de líneas importadas: " + lineasPedido.size());
+        return new ImportResult<>(new ArrayList<>(), new ArrayList<>());
+    }
+
+    public ImportResult<LineaPedido> importCSVLineaPedidosConAvisos(Reader reader) {
+        try (BufferedReader br = reader instanceof BufferedReader bufferedReader ? bufferedReader : new BufferedReader(reader)) {
+            return importCSVLineaPedidosConAvisos(br);
+        } catch (IOException e) {
+            System.err.println("Error al importar líneas de pedido: " + e.getMessage());
+            return new ImportResult<>(new ArrayList<>(), new ArrayList<>());
         }
+    }
+
+    private ImportResult<LineaPedido> importCSVLineaPedidosConAvisos(BufferedReader br) throws IOException {
+        List<LineaPedido> lineasPedido = new ArrayList<>();
+        List<String> avisos = new ArrayList<>();
+        int contadorLineas = 0;
+
+        String line;
+        while ((line = br.readLine()) != null) {
+            contadorLineas++;
+            if (line.trim().isEmpty()) {
+                continue;
+            }
+            if (esCabeceraLineaPedido(line)) {
+                continue;
+            }
+            try {
+                List<String> values = parseCsvLine(line);
+                if (values.size() != 11) {
+                    throw new IllegalArgumentException("Número de columnas inválido. Se esperaban 11 y se recibieron " + values.size());
+                }
+
+                int idLinea = parseEnteroPositivo(values.get(0), "ID de línea", contadorLineas, 1);
+                int idPedido = parseEnteroPositivo(values.get(1), "ID de pedido", contadorLineas, 2);
+                String referenciaProducto = valorNoVacio(values.get(2), "Referencia de producto", contadorLineas, 3);
+                String descripcionProducto = valorNoVacio(values.get(3), "Descripción de producto", contadorLineas, 4);
+                String categoria = valorNoVacio(values.get(4), "Categoría", contadorLineas, 5);
+                BigDecimal costeUnitario = parseDecimalPositivo(values.get(5), "Coste unitario", contadorLineas, 6);
+                BigDecimal precioVentaUnitario = parseDecimalPositivo(values.get(6), "Precio de venta unitario", contadorLineas, 7);
+                int unidades = parseEnteroPositivo(values.get(7), "Número de unidades", contadorLineas, 8);
+                String fechaPedido = parseFechaFlexible(values.get(8), "Fecha de pedido", contadorLineas, 9);
+                int zonaComercial = parseEnteroPositivo(values.get(9), "Zona comercial", contadorLineas, 10);
+                EstadoPedido estado = parseEstadoPedido(values.get(10), contadorLineas, 11);
+
+                LineaPedido linea = new LineaPedido(
+                    idLinea,
+                    idPedido,
+                    referenciaProducto,
+                    descripcionProducto,
+                    categoria,
+                    costeUnitario,
+                    precioVentaUnitario,
+                    unidades,
+                    fechaPedido,
+                    zonaComercial,
+                    estado
+                );
+                lineasPedido.add(linea);
+            } catch (IllegalArgumentException e) {
+                avisos.add("Fila " + contadorLineas + ": " + e.getMessage());
+                System.out.println("Aviso: línea inválida en fila " + contadorLineas + ": " + e.getMessage());
+            }
+        }
+
+        System.out.println("Número total de líneas procesadas: " + contadorLineas);
+        System.out.println("Número total de líneas importadas: " + lineasPedido.size());
         lineasPedido.sort(Comparator.comparing(LineaPedido::getIdLinea));
         return new ImportResult<>(lineasPedido, avisos);
     }

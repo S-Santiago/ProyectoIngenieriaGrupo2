@@ -2,8 +2,7 @@ package controller;
 
 import java.io.File;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -17,21 +16,19 @@ import javafx.scene.chart.BarChart;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.StackedBarChart;
+import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import model.ReglaMargen;
 import model.ZonaComercial;
-import persistence.CsvImporter;
 import persistence.ExcelExporter;
 import persistence.JsonRepositoryReglaMargen;
 import persistence.JsonRepositoryZonaComercial;
@@ -40,7 +37,6 @@ import view.ConsolaErroresDialog;
 public class RentabilidadController {
     private final JsonRepositoryZonaComercial repoZonas = new JsonRepositoryZonaComercial();
     private final JsonRepositoryReglaMargen repoReglas = new JsonRepositoryReglaMargen();
-    private final CsvImporter csvImporter = new CsvImporter();
     private final CalculadoraFinanciera calculadora = new CalculadoraFinanciera();
     private final ExcelExporter excelExporter = new ExcelExporter();
     private final ExploradorController exploradorController = ExploradorController.getInstance();
@@ -113,6 +109,8 @@ public class RentabilidadController {
     private TextField zonaResponsableField;
     @FXML
     private TextField zonaObjetivoField;
+    @FXML
+    private Button guardarZonaButton;
 
     @FXML
     private TableView<ReglaMargen> reglasTableView;
@@ -137,6 +135,8 @@ public class RentabilidadController {
     private CheckBox reglaActivaCheckBox;
     @FXML
     private TextArea reglaDescripcionTextArea;
+    @FXML
+    private Button guardarReglaButton;
 
     @FXML
     private BarChart<String, Number> categoriasBarChart;
@@ -150,14 +150,11 @@ public class RentabilidadController {
     private PieChart zonasPieChart;
 
     @FXML
-    private TabPane panelPrincipal;
-    @FXML
     private Tab tabGestion;
-    @FXML
-    private HBox accionesPrincipalesBox;
 
     private final ObservableList<ZonaComercial> zonasItems = FXCollections.observableArrayList();
     private final ObservableList<ReglaMargen> reglasItems = FXCollections.observableArrayList();
+    private final ImportKpiController importKpiController = new ImportKpiController();
 
     @FXML
     public void initialize() {
@@ -256,9 +253,15 @@ public class RentabilidadController {
         reglasTableView.setPlaceholder(new Label("No hay reglas de margen guardadas."));
 
         zonasTableView.getSelectionModel().selectedItemProperty().addListener((observable, anterior, seleccionada) -> cargarZonaEnFormulario(seleccionada));
+        zonasTableView.getSelectionModel().selectedItemProperty().addListener((observable, anterior, seleccionada) -> actualizarTextoBotonZona());
+        zonaIdField.textProperty().addListener((observable, anterior, nuevo) -> actualizarTextoBotonZona());
         reglasTableView.getSelectionModel().selectedItemProperty().addListener((observable, anterior, seleccionada) -> cargarReglaEnFormulario(seleccionada));
+        reglasTableView.getSelectionModel().selectedItemProperty().addListener((observable, anterior, seleccionada) -> actualizarTextoBotonRegla());
+        reglaIdField.textProperty().addListener((observable, anterior, nuevo) -> actualizarTextoBotonRegla());
 
         reglaActivaCheckBox.setSelected(true);
+        actualizarTextoBotonZona();
+        actualizarTextoBotonRegla();
     }
 
     private void configurarGraficas() {
@@ -446,32 +449,75 @@ public class RentabilidadController {
     @FXML
     public void exportarAnalisis() {
         try {
-            FileChooser fileChooser = new FileChooser();
-            fileChooser.setTitle("Guardar Análisis como Excel");
-            fileChooser.setInitialFileName("analisis_rentabilidad.xlsx");
-            fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Archivos Excel", "*.xlsx")
-            );
-            
             Stage stage = (Stage) rankingCategoriasTableView.getScene().getWindow();
-            File selectedFile = fileChooser.showSaveDialog(stage);
-            
-            if (selectedFile != null) {
-                excelExporter.exportAnalisisRentabilidad(
-                    selectedFile.getAbsolutePath(),
+            exportarExcelConDialogo(
+                stage,
+                "Guardar Análisis como Excel",
+                "analisis_rentabilidad.xlsx",
+                ruta -> excelExporter.exportAnalisisRentabilidad(
+                    ruta,
                     obtenerRankingCategoriasParaExportar(),
                     obtenerLineasBajoMargenParaExportar()
-                );
-                
-                ConsolaErroresDialog.mostrarInfo(
-                    "Exportación Exitosa",
-                    "El análisis se exportó correctamente a:\n" + selectedFile.getAbsolutePath()
-                );
-            }
+                ),
+                "Exportación Exitosa",
+                "El análisis se exportó correctamente a:",
+                "Error en Exportación",
+                "exportar el análisis"
+            );
         } catch (Exception e) {
             ConsolaErroresDialog.mostrarError(
                 "Error en Exportación",
                 "No se pudo exportar el análisis.\nDetalle: " + e.getMessage()
+            );
+        }
+    }
+
+    @FXML
+    public void exportarRankingCategorias() {
+        try {
+            Stage stage = (Stage) rankingCategoriasTableView.getScene().getWindow();
+            exportarExcelConDialogo(
+                stage,
+                "Guardar Ranking de Categorías como Excel",
+                "ranking_categorias.xlsx",
+                ruta -> excelExporter.exportRankingCategorias(
+                    ruta,
+                    obtenerRankingCategoriasParaExportar()
+                ),
+                "Exportación Exitosa",
+                "El ranking se exportó correctamente a:",
+                "Error en Exportación",
+                "exportar el ranking"
+            );
+        } catch (Exception e) {
+            ConsolaErroresDialog.mostrarError(
+                "Error en Exportación",
+                "No se pudo exportar el ranking.\nDetalle: " + e.getMessage()
+            );
+        }
+    }
+
+    @FXML
+    public void exportarLineasBajoMargen() {
+        try {
+            Stage stage = (Stage) lineasBajoMargenTableView.getScene().getWindow();
+            exportarExcelConDialogo(
+                stage,
+                "Guardar Líneas bajo margen como Excel",
+                "lineas_bajo_margen.xlsx",
+                ruta -> excelExporter.exportLineasBajoMargen(
+                    ruta,
+                    obtenerLineasBajoMargenParaExportar()
+                ),
+                "Exportación Exitosa",
+                "Las líneas bajo margen se exportaron correctamente a:",
+                "Error en Exportación",
+                "exportar las líneas bajo margen"
+            );
+        } catch (Exception e) {
+            ConsolaErroresDialog.mostrarError(
+                "Error en Exportación",
+                "No se pudo exportar las líneas bajo margen.\nDetalle: " + e.getMessage()
             );
         }
     }
@@ -540,6 +586,7 @@ public class RentabilidadController {
         zonaResponsableField.clear();
         zonaObjetivoField.clear();
         zonasTableView.getSelectionModel().clearSelection();
+        actualizarTextoBotonZona();
     }
 
     @FXML
@@ -606,57 +653,24 @@ public class RentabilidadController {
         reglaActivaCheckBox.setSelected(true);
         reglaDescripcionTextArea.clear();
         reglasTableView.getSelectionModel().clearSelection();
+        actualizarTextoBotonRegla();
     }
 
     // ==================== MÉTODOS CRUD ORIGINALES ====================
 
     public void cargarDatos() {
-        boolean datosModificados = false;
-
-        //carga zona
         List<ZonaComercial>zonas=repoZonas.findAll();
         if(zonas.isEmpty()){
-            System.out.println(" JSON de Zonas vacío  Cargando desde CSV...");
-            if (Files.exists(Paths.get("data", "zonas.csv"))) {
-                try {
-                    List<ZonaComercial>zonaComercialsCSv=csvImporter.importCSVZonasComerciales("data/zonas.csv");
-                    for(ZonaComercial z:zonaComercialsCSv){
-                        //save a repozonas
-                        repoZonas.save(z);
-                    }
-                    datosModificados = !zonaComercialsCSv.isEmpty();
-                } catch (Exception e) {
-                    System.out.println("Aviso: no se pudo cargar data/zonas.csv. Se continuará con la lista vacía. Detalle: " + e.getMessage());
-                }
-            } else {
-                System.out.println("Aviso: no existe data/zonas.csv. Se continuará con la lista vacía.");
-            }
+            System.out.println("Aviso: el JSON de zonas está vacío o no existe. No se cargará ningún CSV; la lista permanecerá vacía.");
         }else {
             System.out.println("Zonas cargadas desde JSON correctamente.");
         }
-    List<ReglaMargen> reglas = repoReglas.findAll();
+        List<ReglaMargen> reglas = repoReglas.findAll();
         
         if (reglas.isEmpty()) {
-            System.out.println("JSON de Reglas vacío. Cargando desde CSV...");
-            if (Files.exists(Paths.get("data", "reglas.csv"))) {
-                try {
-                    List<ReglaMargen> reglasCSV = csvImporter.importCSVReglasMargen("data/reglas.csv");
-                    for (ReglaMargen r : reglasCSV) {
-                        repoReglas.save(r);
-                    }
-                    datosModificados = datosModificados || !reglasCSV.isEmpty();
-                } catch (Exception e) {
-                    System.out.println("Aviso: no se pudo cargar data/reglas.csv. Se continuará con la lista vacía. Detalle: " + e.getMessage());
-                }
-            } else {
-                System.out.println("Aviso: no existe data/reglas.csv. Se continuará con la lista vacía.");
-            }
+            System.out.println("Aviso: el JSON de reglas está vacío o no existe. No se cargará ningún CSV; la lista permanecerá vacía.");
         } else {
             System.out.println("Reglas cargadas desde JSON correctamente.");
-        }
-
-        if (datosModificados) {
-            ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
         }
     }
     //C
@@ -743,6 +757,7 @@ public class RentabilidadController {
 
     private void cargarZonaEnFormulario(ZonaComercial zona) {
         if (zona == null) {
+            actualizarTextoBotonZona();
             return;
         }
         zonaIdField.setText(valorSeguro(zona.getId()));
@@ -750,10 +765,12 @@ public class RentabilidadController {
         zonaPaisField.setText(valorSeguro(zona.getPais()));
         zonaResponsableField.setText(valorSeguro(zona.getResponsableComercial()));
         zonaObjetivoField.setText(BigDecimal.valueOf(zona.getObjetivoFacturacionAnual()).stripTrailingZeros().toPlainString());
+        actualizarTextoBotonZona();
     }
 
     private void cargarReglaEnFormulario(ReglaMargen regla) {
         if (regla == null) {
+            actualizarTextoBotonRegla();
             return;
         }
         reglaIdField.setText(valorSeguro(regla.getId()));
@@ -761,6 +778,25 @@ public class RentabilidadController {
         reglaMargenField.setText(BigDecimal.valueOf(regla.getMargenMinimoPortcentaje()).stripTrailingZeros().toPlainString());
         reglaActivaCheckBox.setSelected(regla.isActiva());
         reglaDescripcionTextArea.setText(valorSeguro(regla.getDescripcion()));
+        actualizarTextoBotonRegla();
+    }
+
+    void actualizarTextoBotonZona() {
+        if (guardarZonaButton == null) {
+            return;
+        }
+
+        boolean modoEdicion = zonaIdField != null && zonaIdField.getText() != null && !zonaIdField.getText().isBlank();
+        guardarZonaButton.setText(modoEdicion ? "Modificar Zona" : "Crear Zona");
+    }
+
+    void actualizarTextoBotonRegla() {
+        if (guardarReglaButton == null) {
+            return;
+        }
+
+        boolean modoEdicion = reglaIdField != null && reglaIdField.getText() != null && !reglaIdField.getText().isBlank();
+        guardarReglaButton.setText(modoEdicion ? "Modificar Regla" : "Crear Regla");
     }
 
     private void cargarGraficaCategorias() {
@@ -776,51 +812,25 @@ public class RentabilidadController {
     private void cargarGraficaMensual() {
         kpisMensualesLineChart.getData().clear();
 
-        ImportKpiController importKpiController = new ImportKpiController();
-        String tipoFiltro = obtenerTipoFiltroGraficaMensual();
-        String valorFiltro = obtenerValorFiltroGraficaMensual();
-
-        Map<String, BigDecimal> facturacionMensual = tipoFiltro == null
-            ? importKpiController.calcularKPIMensualFacturacion(null)
-            : importKpiController.calcularKPIMensualFacturacion(tipoFiltro, valorFiltro);
-        Map<String, BigDecimal> margenMensual = tipoFiltro == null
-            ? importKpiController.calcularKPIMensualMargen(null)
-            : importKpiController.calcularKPIMensualMargen(tipoFiltro, valorFiltro);
-
-        XYSeriesLoader.loadLineSeries(kpisMensualesLineChart, "Facturación mensual", facturacionMensual);
-        XYSeriesLoader.loadLineSeries(kpisMensualesLineChart, "Margen mensual", margenMensual);
+        KpisMensuales kpisMensuales = obtenerKpisMensuales();
+        XYSeriesLoader.loadLineSeries(kpisMensualesLineChart, "Facturación mensual", kpisMensuales.facturacion());
+        XYSeriesLoader.loadLineSeries(kpisMensualesLineChart, "Margen mensual", kpisMensuales.margen());
     }
 
     private void cargarGraficaMensualApilada() {
         if (stackedBarChartMensual == null) return;
         stackedBarChartMensual.getData().clear();
 
-        ImportKpiController importKpiController = new ImportKpiController();
-        String tipoFiltro = obtenerTipoFiltroGraficaMensual();
-        String valorFiltro = obtenerValorFiltroGraficaMensual();
-
-        Map<String, BigDecimal> facturacionMensual = tipoFiltro == null
-            ? importKpiController.calcularKPIMensualFacturacion(null)
-            : importKpiController.calcularKPIMensualFacturacion(tipoFiltro, valorFiltro);
-        Map<String, BigDecimal> margenMensual = tipoFiltro == null
-            ? importKpiController.calcularKPIMensualMargen(null)
-            : importKpiController.calcularKPIMensualMargen(tipoFiltro, valorFiltro);
+        KpisMensuales kpisMensuales = obtenerKpisMensuales();
 
         javafx.scene.chart.XYChart.Series<String, Number> seriesFact = new javafx.scene.chart.XYChart.Series<>();
         seriesFact.setName("Facturación");
         javafx.scene.chart.XYChart.Series<String, Number> seriesMarg = new javafx.scene.chart.XYChart.Series<>();
         seriesMarg.setName("Margen bruto");
 
-        java.time.YearMonth now = java.time.YearMonth.now();
-        java.util.List<String> meses = new java.util.ArrayList<>();
-        for (int i = 11; i >= 0; i--) {
-            java.time.YearMonth ym = now.minusMonths(i);
-            meses.add(ym.toString());
-        }
-
-        for (String mes : meses) {
-            double f = facturacionMensual.getOrDefault(mes, BigDecimal.ZERO).doubleValue();
-            double m = margenMensual.getOrDefault(mes, BigDecimal.ZERO).doubleValue();
+        for (String mes : ultimosDoceMeses()) {
+            double f = kpisMensuales.facturacion().getOrDefault(mes, BigDecimal.ZERO).doubleValue();
+            double m = kpisMensuales.margen().getOrDefault(mes, BigDecimal.ZERO).doubleValue();
             seriesFact.getData().add(new javafx.scene.chart.XYChart.Data<>(mes, f));
             seriesMarg.getData().add(new javafx.scene.chart.XYChart.Data<>(mes, m));
         }
@@ -925,6 +935,62 @@ public class RentabilidadController {
         }
 
         margenCategoriasPieChart.setData(FXCollections.observableArrayList(data));
+    }
+
+    private KpisMensuales obtenerKpisMensuales() {
+        String tipoFiltro = obtenerTipoFiltroGraficaMensual();
+        String valorFiltro = obtenerValorFiltroGraficaMensual();
+
+        Map<String, BigDecimal> facturacionMensual = tipoFiltro == null
+            ? importKpiController.calcularKPIMensualFacturacion(null)
+            : importKpiController.calcularKPIMensualFacturacion(tipoFiltro, valorFiltro);
+        Map<String, BigDecimal> margenMensual = tipoFiltro == null
+            ? importKpiController.calcularKPIMensualMargen(null)
+            : importKpiController.calcularKPIMensualMargen(tipoFiltro, valorFiltro);
+
+        return new KpisMensuales(facturacionMensual, margenMensual);
+    }
+
+    private List<String> ultimosDoceMeses() {
+        YearMonth ahora = YearMonth.now();
+        List<String> meses = new ArrayList<>();
+        for (int i = 11; i >= 0; i--) {
+            meses.add(ahora.minusMonths(i).toString());
+        }
+        return meses;
+    }
+
+    private FileChooser crearSelectorExcel(String titulo, String nombrePorDefecto) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle(titulo);
+        fileChooser.setInitialFileName(nombrePorDefecto);
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Archivos Excel", "*.xlsx"));
+        return fileChooser;
+    }
+
+    private void exportarExcelConDialogo(Stage stage,
+                                         String titulo,
+                                         String nombrePorDefecto,
+                                         ExportacionExcel exportacion,
+                                         String tituloExito,
+                                         String mensajeExito,
+                                         String tituloError,
+                                         String contextoError) {
+        FileChooser fileChooser = crearSelectorExcel(titulo, nombrePorDefecto);
+        File selectedFile = fileChooser.showSaveDialog(stage);
+        if (selectedFile == null) {
+            return;
+        }
+
+        try {
+            exportacion.exportar(selectedFile.getAbsolutePath());
+            ConsolaErroresDialog.mostrarInfo(tituloExito, mensajeExito + "\n" + selectedFile.getAbsolutePath());
+        } catch (Exception e) {
+            ConsolaErroresDialog.mostrarError(
+                tituloError,
+                "No se pudo " + contextoError + ".\nDetalle: " + e.getMessage()
+            );
+        }
     }
 
     private Integer leerEntero(String texto, Integer valorPorDefecto) {
@@ -1092,6 +1158,14 @@ public class RentabilidadController {
 
             chart.getData().add(series);
         }
+    }
+
+    private record KpisMensuales(Map<String, BigDecimal> facturacion, Map<String, BigDecimal> margen) {
+    }
+
+    @FunctionalInterface
+    private interface ExportacionExcel {
+        void exportar(String ruta) throws Exception;
     }
 
 }

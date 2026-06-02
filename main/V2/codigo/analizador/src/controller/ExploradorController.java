@@ -2,7 +2,9 @@ package controller;
 
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -42,6 +44,7 @@ public class ExploradorController {
     private static final String FILTRO_ZONA = "Zona Comercial";
     private static final String FILTRO_ESTADO = "Estado";
     private static final String FILTRO_FECHA = "Fecha";
+    private static final Path DEFAULT_CSV_FILE = Paths.get("src", "resources", "data", "lineas_pedidos.csv");
 
     private static ExploradorController instance = null;
 
@@ -177,11 +180,7 @@ public class ExploradorController {
         Task<CsvImporter.ImportResult<LineaPedido>> tareaCarga = new Task<>() {
             @Override
             protected CsvImporter.ImportResult<LineaPedido> call() throws Exception {
-                var recurso = getClass().getResource("/data/lineas_pedidos.csv");
-                if (recurso == null) {
-                    throw new IOException("No se encontró el CSV de pedidos en /data/lineas_pedidos.csv.");
-                }
-                return csvImporter.importCSVLineaPedidosConAvisos(Path.of(recurso.toURI()).toString());
+                return cargarPedidosDesdeFuenteDisponible();
             }
         };
 
@@ -224,6 +223,20 @@ public class ExploradorController {
         hilo.start();
     }
 
+    private CsvImporter.ImportResult<LineaPedido> cargarPedidosDesdeFuenteDisponible() throws IOException {
+        if (Files.exists(DEFAULT_CSV_FILE)) {
+            return csvImporter.importCSVLineaPedidosConAvisos(DEFAULT_CSV_FILE.toString());
+        }
+
+        try (var recurso = getClass().getResourceAsStream("/data/lineas_pedidos.csv")) {
+            if (recurso != null) {
+                return csvImporter.importCSVLineaPedidosConAvisos(new java.io.InputStreamReader(recurso, java.nio.charset.StandardCharsets.UTF_8));
+            }
+        }
+
+        throw new IOException("No se encontró el CSV de líneas de pedido en src/resources/data ni en classpath.");
+    }
+
     private void configurarColumnas() {
         idLineaColumn.setCellValueFactory(new PropertyValueFactory<>("idLinea"));
         idPedidoColumn.setCellValueFactory(new PropertyValueFactory<>("idPedido"));
@@ -241,7 +254,38 @@ public class ExploradorController {
     private void configurarControlesFiltro() {
         tipoFiltroComboBox.getItems().setAll(FILTRO_TODAS, FILTRO_CATEGORIA, FILTRO_ZONA, FILTRO_ESTADO, FILTRO_FECHA);
         tipoFiltroComboBox.getSelectionModel().select(FILTRO_TODAS);
-        tipoFiltroComboBox.valueProperty().addListener((observable, valorAnterior, valorNuevo) -> actualizarControlesFiltro());
+        tipoFiltroComboBox.valueProperty().addListener((observable, valorAnterior, valorNuevo) -> {
+            actualizarControlesFiltro();
+            if (!FILTRO_FECHA.equals(valorNuevo)) {
+                aplicarFiltroDesdeUI();
+            }
+        });
+
+        if (valorFiltroComboBox != null) {
+            valorFiltroComboBox.valueProperty().addListener((observable, valorAnterior, valorNuevo) -> {
+                if (!FILTRO_FECHA.equals(tipoFiltroComboBox.getValue())) {
+                    aplicarFiltroDesdeUI();
+                }
+            });
+        }
+
+        valorFiltroTextField.textProperty().addListener((observable, valorAnterior, valorNuevo) -> {
+            if (!FILTRO_FECHA.equals(tipoFiltroComboBox.getValue())) {
+                aplicarFiltroDesdeUI();
+            }
+        });
+
+        fechaInicioDatePicker.valueProperty().addListener((observable, valorAnterior, valorNuevo) -> {
+            if (FILTRO_FECHA.equals(tipoFiltroComboBox.getValue()) && fechaInicioDatePicker.getValue() != null && fechaFinDatePicker.getValue() != null) {
+                aplicarFiltroDesdeUI();
+            }
+        });
+
+        fechaFinDatePicker.valueProperty().addListener((observable, valorAnterior, valorNuevo) -> {
+            if (FILTRO_FECHA.equals(tipoFiltroComboBox.getValue()) && fechaInicioDatePicker.getValue() != null && fechaFinDatePicker.getValue() != null) {
+                aplicarFiltroDesdeUI();
+            }
+        });
 
         refrescarOpcionesFiltros();
 

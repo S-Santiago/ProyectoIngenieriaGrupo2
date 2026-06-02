@@ -73,6 +73,42 @@ class RentabilidadControllerTest {
     }
 
     @Test
+    void elBotonDeZonaCambiaEntreCrearYModificar() throws Exception {
+        RentabilidadController controller = new RentabilidadController();
+
+        Button guardarZonaButton = new Button();
+        TextField zonaIdField = new TextField();
+
+        setField(controller, "guardarZonaButton", guardarZonaButton);
+        setField(controller, "zonaIdField", zonaIdField);
+
+        controller.actualizarTextoBotonZona();
+        assertEquals("Crear Zona", guardarZonaButton.getText());
+
+        zonaIdField.setText("15");
+        controller.actualizarTextoBotonZona();
+        assertEquals("Modificar Zona", guardarZonaButton.getText());
+    }
+
+    @Test
+    void elBotonDeReglaCambiaEntreCrearYModificar() throws Exception {
+        RentabilidadController controller = new RentabilidadController();
+
+        Button guardarReglaButton = new Button();
+        TextField reglaIdField = new TextField();
+
+        setField(controller, "guardarReglaButton", guardarReglaButton);
+        setField(controller, "reglaIdField", reglaIdField);
+
+        controller.actualizarTextoBotonRegla();
+        assertEquals("Crear Regla", guardarReglaButton.getText());
+
+        reglaIdField.setText("18");
+        controller.actualizarTextoBotonRegla();
+        assertEquals("Modificar Regla", guardarReglaButton.getText());
+    }
+
+    @Test
     void accesoFinancieroQuedaBloqueadoParaComercial() {
         SesionAplicacion.establecer(new SesionUsuario("comercial", RolUsuario.COMERCIAL, List.of(1)));
 

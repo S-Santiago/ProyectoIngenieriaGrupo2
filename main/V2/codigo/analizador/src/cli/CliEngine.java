@@ -1,8 +1,6 @@
 package cli;
 
 import java.math.BigDecimal;
-import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,7 +22,7 @@ import view.ConsolaErroresDialog;
 
 public class CliEngine {
 
-    private static final String DEFAULT_CSV_RESOURCE = "/data/lineas_pedidos.csv";
+    private static final Path DEFAULT_CSV_FILE = Paths.get("src", "resources", "data", "lineas_pedidos.csv");
     private static final int MAX_FILAS_POR_PANTALLA = 20;
 
     private final Scanner scanner;
@@ -79,12 +77,50 @@ public class CliEngine {
 
     private void cargarPedidosDesdeCsv() {
         String ruta = leerTexto("Ruta del CSV (Enter para usar el CSV por defecto)");
-        String rutaFinal = ruta.isBlank() ? resolverRutaCsvPorDefecto() : ruta;
+        if (ruta.isBlank()) {
+            if (Files.exists(DEFAULT_CSV_FILE)) {
+                var resultado = csvImporter.importCSVLineaPedidosConAvisos(DEFAULT_CSV_FILE.toString());
+                List<LineaPedido> lineasImportadas = resultado.getElementos();
+                exploradorController.setPedidos(lineasImportadas);
+                ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
+                ultimoResultado = exploradorController.getPedidos();
 
-        if (rutaFinal == null || rutaFinal.isBlank()) {
-            System.out.println("No se pudo resolver el CSV por defecto del proyecto.");
-            return;
+                System.out.println("Pedidos cargados correctamente: " + ultimoResultado.size());
+                if (!exploradorController.getValidationErrors().isEmpty()) {
+                    System.out.println("Se detectaron avisos al validar los pedidos importados:");
+                    for (String aviso : exploradorController.getValidationErrors()) {
+                        System.out.println("- " + aviso);
+                    }
+                }
+                return;
+            }
+
+            try (var recurso = getClass().getResourceAsStream("/data/lineas_pedidos.csv")) {
+                if (recurso == null) {
+                    System.out.println("No se encontró el CSV por defecto en src/resources/data/lineas_pedidos.csv.");
+                    return;
+                }
+                var resultado = csvImporter.importCSVLineaPedidosConAvisos(new java.io.InputStreamReader(recurso, java.nio.charset.StandardCharsets.UTF_8));
+                List<LineaPedido> lineasImportadas = resultado.getElementos();
+                exploradorController.setPedidos(lineasImportadas);
+                ConsolaErroresDialog.reiniciarNoVolverAMostrarAnalisis();
+                ultimoResultado = exploradorController.getPedidos();
+
+                System.out.println("Pedidos cargados correctamente: " + ultimoResultado.size());
+                if (!exploradorController.getValidationErrors().isEmpty()) {
+                    System.out.println("Se detectaron avisos al validar los pedidos importados:");
+                    for (String aviso : exploradorController.getValidationErrors()) {
+                        System.out.println("- " + aviso);
+                    }
+                }
+                return;
+            } catch (Exception e) {
+                System.out.println("Error al cargar CSV desde archivo por defecto: " + e.getMessage());
+                return;
+            }
         }
+
+        String rutaFinal = ruta;
 
         if (!Files.exists(Paths.get(rutaFinal))) {
             System.out.println("No existe el archivo CSV indicado: " + rutaFinal);
@@ -557,19 +593,5 @@ public class CliEngine {
     private String leerTexto(String mensaje) {
         System.out.print(mensaje + ": ");
         return scanner.nextLine().trim();
-    }
-
-    private String resolverRutaCsvPorDefecto() {
-        URL recurso = getClass().getResource(DEFAULT_CSV_RESOURCE);
-        if (recurso == null) {
-            return null;
-        }
-
-        try {
-            Path ruta = Paths.get(recurso.toURI());
-            return ruta.toString();
-        } catch (URISyntaxException exception) {
-            return null;
-        }
     }
 }

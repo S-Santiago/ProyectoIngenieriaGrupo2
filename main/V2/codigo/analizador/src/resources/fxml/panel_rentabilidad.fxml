@@ -41,7 +41,7 @@
                <tabs>
                   <Tab text="Análisis">
                      <content>
-                        <ScrollPane fitToWidth="true" fitToHeight="true" pannable="true" VBox.vgrow="ALWAYS" styleClass="scroll-container">
+                        <ScrollPane fitToWidth="true" fitToHeight="false" pannable="true" styleClass="scroll-container">
                            <content>
                               <VBox spacing="14.0" styleClass="view-container">
                                  <children>
@@ -56,7 +56,6 @@
                                                 <TableColumn fx:id="rankMargenPorcentajeColumn" prefWidth="150.0" text="Margen %" />
                                              </columns>
                                           </TableView>
-                                          
                                        </VBox>
                                     </TitledPane>
 
@@ -95,7 +94,7 @@
                                     <TitledPane text="Evolución mensual" expanded="true" styleClass="dark-titled-pane">
                                        <VBox spacing="8.0" style="-fx-padding: 10px;">
                                           <Label text="Facturación y margen bruto por mes" styleClass="section-title" />
-                                          <LineChart fx:id="kpisMensualesLineChart" prefHeight="300.0" animated="false" legendVisible="true">
+                                          <LineChart fx:id="kpisMensualesLineChart" prefHeight="500.0" minHeight="400.0" animated="false" legendVisible="true">
                                              <xAxis>
                                                 <CategoryAxis label="Mes" />
                                              </xAxis>
@@ -137,7 +136,7 @@
 
                                           <HBox spacing="10.0">
                                              <children>
-                                                <Button text="Guardar zona" onAction="#guardarZonaDesdeFormulario" styleClass="action-button" />
+                                                <Button fx:id="guardarZonaButton" text="Crear Zona" onAction="#guardarZonaDesdeFormulario" styleClass="action-button" />
                                                 <Button text="Limpiar" onAction="#limpiarFormularioZona" styleClass="action-button" />
                                                 <Button text="Eliminar seleccionada" onAction="#eliminarZonaSeleccionada" styleClass="action-button" />
                                              </children>
@@ -174,7 +173,7 @@
 
                                           <HBox spacing="10.0">
                                              <children>
-                                                <Button text="Guardar regla" onAction="#guardarReglaDesdeFormulario" styleClass="action-button" />
+                                                <Button fx:id="guardarReglaButton" text="Crear Regla" onAction="#guardarReglaDesdeFormulario" styleClass="action-button" />
                                                 <Button text="Limpiar" onAction="#limpiarFormularioRegla" styleClass="action-button" />
                                                 <Button text="Eliminar seleccionada" onAction="#eliminarReglaSeleccionada" styleClass="action-button" />
                                              </children>
@@ -211,7 +210,7 @@
                                           <VBox spacing="8.0" styleClass="chart-card" HBox.hgrow="ALWAYS">
                                              <children>
                                                 <Label text="Ranking de categorías" styleClass="section-title" />
-                                                <BarChart fx:id="categoriasBarChart" prefHeight="300.0" animated="false" legendVisible="true">
+                                                <BarChart fx:id="categoriasBarChart" prefHeight="380.0" animated="false" legendVisible="true">
                                                    <xAxis>
                                                       <CategoryAxis label="Categoría" />
                                                    </xAxis>
@@ -225,14 +224,14 @@
                                           <VBox spacing="8.0" styleClass="chart-card" HBox.hgrow="ALWAYS">
                                              <children>
                                                 <Label text="Facturación real por zona" styleClass="section-title" />
-                                                <PieChart fx:id="zonasPieChart" prefHeight="300.0" />
+                                                <PieChart fx:id="zonasPieChart" prefHeight="380.0" />
                                              </children>
                                           </VBox>
 
                                           <VBox spacing="8.0" styleClass="chart-card" HBox.hgrow="ALWAYS">
                                              <children>
                                                 <Label text="Facturación vs Margen (últimos 12 meses)" styleClass="section-title" />
-                                                <StackedBarChart fx:id="stackedBarChartMensual" prefHeight="300.0" animated="false" legendVisible="true">
+                                                <StackedBarChart fx:id="stackedBarChartMensual" prefHeight="380.0" animated="false" legendVisible="true">
                                                    <xAxis>
                                                       <CategoryAxis label="Mes" />
                                                    </xAxis>

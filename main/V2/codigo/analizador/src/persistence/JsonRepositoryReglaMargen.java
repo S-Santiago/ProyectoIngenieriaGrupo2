@@ -10,14 +10,16 @@ import java.util.Comparator;
 import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.core.type.TypeReference;
 
 import model.ReglaMargen;
 
 public class JsonRepositoryReglaMargen {
-    private static final Path DATA_DIRECTORY = Paths.get("data");
+    private static final Path DATA_DIRECTORY = Paths.get("src", "resources", "data");
     private static final Path FILE_PATH = DATA_DIRECTORY.resolve("reglas.json");
-    private final ObjectMapper mapper = new ObjectMapper();
+        private final ObjectMapper mapper = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private final List<ReglaMargen> reglas;
 
     public JsonRepositoryReglaMargen() {
@@ -78,7 +80,7 @@ public class JsonRepositoryReglaMargen {
         try {
             Files.createDirectories(DATA_DIRECTORY);
         } catch (IOException e) {
-            System.err.println("No se pudo crear el directorio data: " + e.getMessage());
+            System.err.println("No se pudo crear el directorio src/resources/data: " + e.getMessage());
             return new ArrayList<>();
         }
 
@@ -89,34 +91,10 @@ public class JsonRepositoryReglaMargen {
                 System.out.println("[JsonRepositoryReglaMargen] Leídas " + desdeDisco.size() + " reglas desde disco: " + FILE_PATH.toAbsolutePath());
                 return desdeDisco;
             } catch (IOException e) {
-                System.err.println("Error al leer reglas.json desde disco: " + e.getMessage());
-                return new ArrayList<>();
-            }
-        }
-
-        // Si no existe en disco, intentar cargar desde recursos empaquetados (classpath)
-        try (InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream("data/reglas.json")) {
-            if (is != null) {
-                // Primero intentar mapear directamente a ReglaMargen
+                System.err.println("Error al leer reglas.json desde disco (lectura directa): " + e.getMessage());
+                // Intentar leer como lista de mapas y convertir campos alternativos
                 try {
-                    List<ReglaMargen> desdeRecursos = mapper.readValue(is, new TypeReference<List<ReglaMargen>>() {});
-                    if (desdeRecursos != null && !desdeRecursos.isEmpty() && desdeRecursos.get(0).getId() != null) {
-                        try {
-                            mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), desdeRecursos);
-                        } catch (IOException e) {
-                            System.err.println("No se pudo copiar reglas.json desde recursos a disco: " + e.getMessage());
-                        }
-                        System.out.println("[JsonRepositoryReglaMargen] Leídas " + desdeRecursos.size() + " reglas desde recursos (formato directo)");
-                        return desdeRecursos;
-                    }
-                } catch (IOException ignore) {
-                    // ignore y probar formato alternativo
-                }
-
-                // Resetear stream y leer como lista de mapas para mapear campos alternativos
-                try (InputStream is2 = Thread.currentThread().getContextClassLoader().getResourceAsStream("data/reglas.json")) {
-                    if (is2 == null) return new ArrayList<>();
-                    List<java.util.Map<String, Object>> raw = mapper.readValue(is2, new TypeReference<List<java.util.Map<String, Object>>>() {});
+                    List<java.util.Map<String, Object>> raw = mapper.readValue(FILE_PATH.toFile(), new TypeReference<List<java.util.Map<String, Object>>>() {});
                     List<ReglaMargen> convertidas = new ArrayList<>();
                     for (java.util.Map<String, Object> m : raw) {
                         if (m == null) continue;
@@ -124,7 +102,7 @@ public class JsonRepositoryReglaMargen {
                         Object idObj = m.getOrDefault("id", m.get("idRegla"));
                         if (idObj instanceof Number) id = ((Number) idObj).intValue();
                         else if (idObj instanceof String) {
-                            try { id = Integer.valueOf((String) idObj); } catch (NumberFormatException e) {}
+                            try { id = Integer.valueOf((String) idObj); } catch (NumberFormatException ex) {}
                         }
 
                         String categoria = (String) m.getOrDefault("categoriaProductoAfectada", m.get("nombre"));
@@ -132,12 +110,12 @@ public class JsonRepositoryReglaMargen {
                         Object margenObj = m.getOrDefault("margenMinimoPortcentaje", m.get("margenMinimo"));
                         if (margenObj instanceof Number) margen = ((Number) margenObj).doubleValue();
                         else if (margenObj instanceof String) {
-                            try { margen = Double.valueOf((String) margenObj); } catch (NumberFormatException e) {}
+                            try { margen = Double.valueOf((String) margenObj); } catch (NumberFormatException ex) {}
                         }
                         if (margen != null && margen <= 1.0) {
-                            // Asumir fracción y convertir a porcentaje
                             margen = margen * 100.0;
                         }
+
                         boolean activa = false;
                         Object actObj = m.getOrDefault("activa", m.get("activo"));
                         if (actObj instanceof Boolean) activa = (Boolean) actObj;
@@ -156,20 +134,19 @@ public class JsonRepositoryReglaMargen {
                     }
                     try {
                         mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), convertidas);
-                    } catch (IOException e) {
-                        System.err.println("No se pudo copiar reglas.json convertido a disco: " + e.getMessage());
+                    } catch (IOException ex) {
+                        System.err.println("No se pudo escribir reglas.json convertido en src/resources/data: " + ex.getMessage());
                     }
-                    System.out.println("[JsonRepositoryReglaMargen] Convertidas y leídas " + convertidas.size() + " reglas desde recursos (formato alternativo)");
+                    System.out.println("[JsonRepositoryReglaMargen] Convertidas y leídas " + convertidas.size() + " reglas desde disco (formato alternativo)");
                     return convertidas;
-                } catch (IOException e) {
-                    System.err.println("Error al leer reglas.json desde recursos (formato alternativo): " + e.getMessage());
+                } catch (IOException ex2) {
+                    System.err.println("Error al convertir reglas.json desde disco: " + ex2.getMessage());
                     return new ArrayList<>();
                 }
             }
-        } catch (IOException e) {
-            System.err.println("Error al acceder a recursos para reglas.json: " + e.getMessage());
         }
-
+        // Si no existe en disco, devolver vacío (no hacemos fallback a classpath en V2)
+        System.out.println("Aviso: el JSON de reglas está vacío o no existe.");
         return new ArrayList<>();
     }
 
@@ -179,12 +156,12 @@ public class JsonRepositoryReglaMargen {
             ordenarPorId();
             mapper.writerWithDefaultPrettyPrinter().writeValue(FILE_PATH.toFile(), reglas);
         } catch (IOException e) {
-            System.err.println("Error al guardar reglas.json: " + e.getMessage());
+            System.err.println("Error al guardar reglas.json en src/resources/data: " + e.getMessage());
         }
     }
 
     private void ordenarPorId() {
-        reglas.sort(Comparator.comparing(ReglaMargen::getId));
+        reglas.sort(Comparator.comparing(ReglaMargen::getId, Comparator.nullsLast(Comparator.naturalOrder())));
     }
 
     private Integer parseId(String id) {
